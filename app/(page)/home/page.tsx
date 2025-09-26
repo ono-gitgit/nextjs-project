@@ -1,0 +1,351 @@
+"use client";
+import { BackgroundColor } from "@/app/components/BackgroundColor";
+import Image from "next/image";
+import React from "react";
+import { useCallback, useEffect, useState } from "react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Table,
+  TableBody,
+  //TableCaption,
+  TableCell,
+  // TableHead,
+  // TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import { UserIcon, Rank } from "@/app/types/types";
+import { formatNumber } from "@/app/lib/utils";
+
+export default function Home() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [iconId, setIconId] = useState<number | null>(null);
+  const [goal, setGoal] = useState<string | null>(null);
+  const [todayRecordSum, setTodayRecordSum] = useState<number | null>(null);
+  const [budgetDeviation, setBudgetDeviation] = useState<number>(0);
+  const [rankId, setRankId] = useState<number | null>(null);
+  const [userIcon, setUserIcon] = useState<UserIcon>({ path: "" });
+  const [rank, setRank] = useState<Rank>({
+    name: "",
+    icon: "",
+  });
+
+  //ユーザーアイコンの取得
+  const fetchUserIcon = useCallback(async (icon_id: number) => {
+    const data = await fetch("/api/userIcon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ icon_id }),
+    });
+    const user_icon = await data.json();
+    console.log(user_icon);
+    setUserIcon(() => user_icon);
+  }, []);
+
+  //今月の支出合計の取得
+  const fetchTodayRecordSum = useCallback(async (user_id: number) => {
+    const data = await fetch("/api/fetchTodayRecordSum", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id }),
+    });
+    const todayRecordSum = await data.json();
+    setTodayRecordSum(() => todayRecordSum[0].sum);
+  }, []);
+
+  //ランクアイコンの検索
+  const fetchRank = useCallback(async (rank_id: number) => {
+    setIsLoading(true);
+    const data = await fetch("/api/rank", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rank_id }),
+    });
+    const rank = await data.json();
+    setRank(() => rank);
+    setIsLoading(false);
+  }, []);
+
+  //目標と支出との乖離率を取得
+  const calculateBudgetDeviation = useCallback(() => {
+    if (goal !== "null" && todayRecordSum !== 0 && todayRecordSum) {
+      const tentativeBudgetDeviation =
+        ((Number(goal) - todayRecordSum) / Number(goal)) * 100;
+      setBudgetDeviation(() => tentativeBudgetDeviation);
+    }
+  }, [goal, todayRecordSum]);
+
+  //トップ画面に表示させるを取得する処理
+  const fetchTopPageData = useCallback(async () => {
+    setIsLoading(true);
+    if (iconId !== null && rankId !== null && userId !== null) {
+      await fetchUserIcon(iconId);
+      await fetchTodayRecordSum(userId);
+      await fetchRank(rankId);
+      calculateBudgetDeviation();
+    }
+    setIsLoading(false);
+  }, [
+    calculateBudgetDeviation,
+    fetchRank,
+    fetchTodayRecordSum,
+    fetchUserIcon,
+    iconId,
+    rankId,
+    userId,
+  ]);
+
+  const chartData = [
+    { month: "January", desktop: 186 },
+    { month: "February", desktop: 305 },
+    { month: "March", desktop: 237 },
+    { month: "April", desktop: 73 },
+    { month: "May", desktop: 209 },
+    { month: "June", desktop: 214 },
+  ];
+  const chartConfig = {
+    desktop: {
+      label: "Desktop",
+      color: "var(--chart-1)",
+    },
+  } satisfies ChartConfig;
+
+  //セッションスコープの情報を取得する処理
+  useEffect(() => {
+    sessionStorage.setItem("navigation", "home");
+    const user_id = sessionStorage.getItem("user_id");
+    const user_name = sessionStorage.getItem("user_name");
+    const icon_id = sessionStorage.getItem("icon_id");
+    const goal = sessionStorage.getItem("goal");
+    const rankId = sessionStorage.getItem("rank_id");
+    setUserId(Number(user_id));
+    setUserName(user_name);
+    setIconId(Number(icon_id));
+    setGoal(goal);
+    setRankId(Number(rankId));
+    console.log(sessionStorage);
+  }, []);
+
+  //トップ画面の出力に必要な情報を検索する処理
+  useEffect(() => {
+    fetchTopPageData();
+  }, [fetchTopPageData]);
+
+  return (
+    <div>
+      <BackgroundColor isLoading={isLoading}>
+        <div className="flex justify-between">
+          <div className="mt-3 ml-10">
+            {userIcon.path !== "" && (
+              <Image
+                className="rounded-full"
+                src={userIcon.path}
+                alt="userIcon"
+                height={60}
+                width={60}
+              />
+            )}
+            <div className="max-w-20 font-bold">{userName}</div>
+          </div>
+          <button
+            className="mr-10 max-w-20 font-bold"
+            onClick={() => {
+              setIsDialogOpen(true);
+            }}
+          >
+            {rank.icon !== "" && (
+              <Image src={rank.icon} alt={rank.name} height={100} width={100} />
+            )}
+            <div
+              className={`mt-[-10px] max-w-20 text-2xl font-bold ${
+                rank.name == "Bronze" && "text-[#9A6229]"
+              }`}
+            >
+              {rank.name}
+            </div>
+          </button>
+        </div>
+
+        <dl
+          className={`mt-8 mx-auto border-1 border-black rounded-[5px] w-[80vw] ${
+            budgetDeviation > 0 ? "bg-[#FFD783]" : "bg-[#75A9F9]"
+          }`}
+        >
+          <dt className="text-[14px]">１か月の上限</dt>
+          {goal !== "null" && goal ? (
+            <dd className="text-[26px] max-w-[40vw] break-all">
+              ￥{formatNumber(Number(goal))}
+            </dd>
+          ) : (
+            <dd className="mb-2 text-[20px] max-w-[80vw] break-all">
+              目標が設定されていません
+            </dd>
+          )}
+          <dt className="text-[14px]">今月の支出</dt>
+          <dd className="flex flex-row">
+            {formatNumber(Number(todayRecordSum)) !== "0" ? (
+              <div>
+                <div className="text-[26px] max-w-[40vw] break-all">
+                  ￥{formatNumber(Number(todayRecordSum))}
+                </div>
+                {budgetDeviation > 0 ? (
+                  <div className="flex items-end ml-15">
+                    {budgetDeviation}％節約中！
+                  </div>
+                ) : (
+                  <div className="flex items-end ml-15">
+                    {Math.abs(budgetDeviation)}％の浪費...
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-[26px] max-w-[40vw] break-all">
+                記録がありません
+              </div>
+            )}
+          </dd>
+        </dl>
+
+        {/* グラフ（ここから） */}
+        <div className="mt-8">
+          <CardHeader>
+            <CardTitle className="font-serif">
+              今年の出費
+              <hr className="border-black border-2 rounded-[5px] w-full" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="mt-3">
+            <ChartContainer config={chartConfig} className="h-[200px] w-[80vw]">
+              <LineChart
+                accessibilityLayer
+                data={chartData}
+                margin={{
+                  left: -20,
+                  right: 12,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={true}
+                  tickMargin={8}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <YAxis tickLine={false} axisLine={true} />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+                <Line
+                  dataKey="desktop"
+                  type="linear"
+                  stroke="#00441b"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </div>
+        {/* グラフ（ここまで） */}
+
+        <div className="mt-8 justify-items-center">
+          <div>
+            <div className="font-serif w-[80vw]">
+              出費ランキング TOP５
+              <hr className="border-black border-2 rounded-[5px]" />
+            </div>
+          </div>
+          <Tabs defaultValue="expendAverage" className="mt-3">
+            <TabsList className="w-[80vw]">
+              <TabsTrigger value="expendAverage">
+                これまでの支出の平均
+              </TabsTrigger>
+              <TabsTrigger value="thisMonthExpend">今月の支出</TabsTrigger>
+            </TabsList>
+            <TabsContent value="expendAverage">
+              <Table className="bg-gray-200">
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">INV001</TableCell>
+                    <TableCell className="text-right">$250.00</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TabsContent>
+            <TabsContent value="thisMonthExpend">
+              Change your password here.
+            </TabsContent>
+          </Tabs>
+        </div>
+      </BackgroundColor>
+      <AboutRank isOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} />
+    </div>
+  );
+}
+
+type Prop = {
+  isOpen: boolean;
+  setIsDialogOpen: (value: boolean) => void;
+};
+const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
+  return (
+    <Dialog open={isOpen} className="z-10">
+      <DialogTitle>ランクとは？</DialogTitle>
+      <DialogContent>
+        <p className="mb-5">
+          先月の節約率（
+          「1か月の上限」に対する「今月の支出」の割合）に応じてランクが
+          変動します
+        </p>
+        <ul>
+          <li className="flex flex-row mb-3">
+            <div>Bronze：</div>
+            <div>節約率0%以下（もしくは記録なし）</div>
+          </li>
+          <li className="flex flex-row mb-3">
+            <div>Silver：</div>
+            <div>節約率1～5%</div>
+          </li>
+          <li className="flex flex-row mb-3">
+            <div>Gold：</div>
+            <div>節約率5～10%</div>
+          </li>
+          <li className="flex flex-row mb-3">
+            <div>Platinum：</div>
+            <div>節約率10～20%</div>
+          </li>
+          <li className="flex flex-row">
+            <div>Master：</div>
+            <div>節約率20%以上</div>
+          </li>
+        </ul>
+      </DialogContent>
+      <DialogActions>
+        <button
+          onClick={() => {
+            setIsDialogOpen(false);
+          }}
+          className="text-3xl text-blue-500 w-20"
+        >
+          OK
+        </button>
+      </DialogActions>
+    </Dialog>
+  );
+};

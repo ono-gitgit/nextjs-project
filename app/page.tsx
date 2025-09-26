@@ -2,27 +2,26 @@
 import Form from "@/app/components/Form";
 import { BackgroundColor } from "./components/BackgroundColor";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { LoginFormValue } from "./types/types";
 
-export default function Home() {
+export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const formArray = [
     {
       label: "メールアドレス",
-      name: "mail",
+      name: "email_address",
       value: "",
       validationRule: {
         required: "メールアドレスは必須です",
         pattern: {
-          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+          value: /^\S+[^\s@]+@[^\s@]+\.[^\s@]+$/,
           message: "メールアドレスを正しく入力してください",
         },
       },
       type: "text",
-      link: "",
-      linkPath: "",
     },
     {
       label: "パスワード",
@@ -32,7 +31,11 @@ export default function Home() {
         required: "パスワードは必須です",
         maxLength: {
           value: 20,
-          message: "パスワードは２０文字以内にしてください",
+          message: "パスワードは２０文字以内で入力して下さい",
+        },
+        pattern: {
+          value: /^\S+$/,
+          message: "先頭と末尾に空白文字を入れないください",
         },
       },
       type: "password",
@@ -41,44 +44,55 @@ export default function Home() {
     },
   ];
 
-  type formValue = {
-    mail: string;
-    password: string | number;
-  };
-  const onClick = async (argument: formValue) => {
+  const onClick = async (formValues: LoginFormValue) => {
     setIsLoading(true);
     const users = await fetch("/api/users");
     const json = await users.json();
     for (const user of json) {
       if (
-        user.email_address == argument.mail &&
-        user.password == argument.password
+        user.email_address == formValues.email_address &&
+        user.password == formValues.password &&
+        user.is_deleted === false
       ) {
-        router.push("/top");
+        sessionStorage.setItem("user_id", user.id);
+        sessionStorage.setItem("user_name", user.name);
+        sessionStorage.setItem("icon_id", user.icon_id);
+        sessionStorage.setItem("goal", user.goal);
+        sessionStorage.setItem("rank_id", user.rank_id);
+        router.push("/home");
       } else {
-        console.log(argument.mail);
+        console.log(formValues.email_address);
         alert("該当するユーザーは存在しません");
       }
     }
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    sessionStorage.removeItem("navigation");
+  }, []);
   return (
     <>
-      <BackgroundColor>
+      <BackgroundColor isLoading={isLoading}>
         <Form
           icon="/companyLogo.png"
-          iconDescription="Next.js logo"
+          iconDescription="当アプリのロゴ"
           title="ログイン"
           description="アプリを利用するにはサインインが必要です"
           formArray={formArray}
-          onSubmit={(argument) =>
-            onClick(argument as { mail: string; password: string })
+          onSubmit={(formValues) =>
+            onClick(formValues as { email_address: string; password: string })
           }
-          isLoading={isLoading}
           bottonName="ログイン"
         >
-          <a href="https" className="mt-5 text-blue-600 underline text-[15px]">
-            アカウントをお持ちでない方は、 <br />
+          <a
+            className="mt-5 mx-auto text-blue-600 underline text-[15px] text-center"
+            onClick={() => {
+              setIsLoading(true);
+              router.push("/createAccount");
+            }}
+          >
+            アカウントをお持ちでない方は <br />
             こちらをクリック
           </a>
         </Form>
