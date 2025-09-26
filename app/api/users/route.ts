@@ -1,9 +1,9 @@
-import { fetchUser } from "@/app/lib/api";
+import { fetchUsers } from "@/app/lib/api";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const users = await fetchUser();
+    const users = await fetchUsers();
     return NextResponse.json(users);
   } catch (error) {
     if (error instanceof Error) {
@@ -11,6 +11,6 @@ export async function GET() {
     } else {
       console.error("Unknown Error:", error);
     }
-    throw new Error("Failed to fetch product data.");
+    throw new Error("Failed to fetch user data.");
   }
 }
