@@ -54,6 +54,7 @@ export default function Login() {
         user.password == formValues.password &&
         user.is_deleted === false
       ) {
+        sessionStorage.setItem("navigation", "home");
         sessionStorage.setItem("user_id", user.id);
         sessionStorage.setItem("user_name", user.name);
         sessionStorage.setItem("icon_id", user.icon_id);

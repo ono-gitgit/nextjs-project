@@ -3,14 +3,10 @@
 import { BackgroundColor } from "@/app/components/BackgroundColor";
 import Form from "@/app/components/Form";
 import { GoalSettingFormValue } from "@/app/types/types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function GoalSetting() {
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    sessionStorage.setItem("navigation", "goalSetting");
-  }, []);
 
   const formArray = [
     {

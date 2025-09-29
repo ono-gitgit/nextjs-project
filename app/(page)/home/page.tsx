@@ -85,7 +85,7 @@ export default function Home() {
     if (goal !== "null" && todayRecordSum !== 0 && todayRecordSum) {
       const tentativeBudgetDeviation =
         ((Number(goal) - todayRecordSum) / Number(goal)) * 100;
-      setBudgetDeviation(() => tentativeBudgetDeviation);
+      setBudgetDeviation(() => Math.floor(tentativeBudgetDeviation));
     }
   }, [goal, todayRecordSum]);
 
@@ -126,7 +126,6 @@ export default function Home() {
 
   //セッションスコープの情報を取得する処理
   useEffect(() => {
-    sessionStorage.setItem("navigation", "home");
     const user_id = sessionStorage.getItem("user_id");
     const user_name = sessionStorage.getItem("user_name");
     const icon_id = sessionStorage.getItem("icon_id");
@@ -187,11 +186,11 @@ export default function Home() {
         >
           <dt className="text-[14px]">１か月の上限</dt>
           {goal !== "null" && goal ? (
-            <dd className="text-[26px] max-w-[40vw] break-all">
+            <dd className="text-[26px] break-all">
               ￥{formatNumber(Number(goal))}
             </dd>
           ) : (
-            <dd className="mb-2 text-[20px] max-w-[80vw] break-all">
+            <dd className="mb-2 text-[20px] break-all">
               目標が設定されていません
             </dd>
           )}
@@ -199,7 +198,7 @@ export default function Home() {
           <dd className="flex flex-row">
             {formatNumber(Number(todayRecordSum)) !== "0" ? (
               <div>
-                <div className="text-[26px] max-w-[40vw] break-all">
+                <div className="text-[26px] break-all">
                   ￥{formatNumber(Number(todayRecordSum))}
                 </div>
                 {budgetDeviation > 0 ? (
@@ -213,9 +212,7 @@ export default function Home() {
                 )}
               </div>
             ) : (
-              <div className="text-[26px] max-w-[40vw] break-all">
-                記録がありません
-              </div>
+              <div className="text-[20px] break-all">記録がありません</div>
             )}
           </dd>
         </dl>
