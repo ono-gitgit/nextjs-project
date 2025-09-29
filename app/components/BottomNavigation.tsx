@@ -24,6 +24,7 @@ export const BottomNavigation = () => {
           <li>
             <button
               onClick={() => {
+                sessionStorage.setItem("navigation", "home");
                 router.push("/home");
               }}
               className={`flex flex-col items-center justify-center hover:bg-gray-200 rounded-2xl w-[25vw] h-12 ${
@@ -37,6 +38,7 @@ export const BottomNavigation = () => {
           <li>
             <button
               onClick={() => {
+                sessionStorage.setItem("navigation", "goalSetting");
                 router.push("/goalSetting");
               }}
               className={`flex flex-col items-center justify-center hover:bg-gray-200 rounded-2xl w-[25vw] h-12 ${
@@ -50,6 +52,7 @@ export const BottomNavigation = () => {
           <li>
             <button
               onClick={() => {
+                sessionStorage.setItem("navigation", "record");
                 router.push("/record");
               }}
               className={`flex flex-col items-center justify-center hover:bg-gray-200 rounded-2xl w-[25vw] h-12 ${

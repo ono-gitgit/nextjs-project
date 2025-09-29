@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import IconAndTitle from "./IconAndTitle";
 
 type radioOption = {
   value: number;
@@ -59,20 +60,12 @@ export default function Form({
   return (
     <div className="justify-items-center">
       <main className="flex flex-col gap-[32px] row-start-2">
-        {icon && iconDescription && (
-          <Image
-            className="mt-[20px] mb-[-30px] mx-auto w-auto"
-            src={icon}
-            alt={iconDescription}
-            width={100}
-            height={30}
-            priority
-          />
-        )}
-        <h1 className="mt-3 text-center font-bold text-3xl font-serif">
-          {title}
-        </h1>
-        <p className="text-sm">{description}</p>
+        <IconAndTitle
+          icon={icon}
+          iconDescription={iconDescription}
+          title={title}
+          description={description}
+        />
         <form
           className="gap-4 flex-col max-w-70"
           onSubmit={handleSubmit(() => {
