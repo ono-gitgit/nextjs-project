@@ -1,0 +1,16 @@
+import { fetchCategories } from "@/app/lib/api";
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  try {
+    const res = await fetchCategories();
+    return NextResponse.json(res);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Database Error:", error.message);
+    } else {
+      console.error("Unknown Error:", error);
+    }
+    throw new Error("Failed to fetch categories data.");
+  }
+}
