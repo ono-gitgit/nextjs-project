@@ -1,7 +1,6 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
-import { RecordFormValue, User } from "@/app/types/types";
-import { formatDate } from "@/app/lib/utils";
+import { RecordFromArray, User } from "@/app/types/types";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -67,42 +66,137 @@ export async function updateUserGoal(id: number, goal: number) {
   }
 }
 
-//今日の支出金額の合計
-export async function fetchTodayRecordSum(user_id: number) {
+//カテゴリの取得
+export async function fetchCategories() {
   try {
-    const today = formatDate(new Date());
-    const data =
-      await sql`SELECT SUM(amount) FROM expenses WHERE recorded_on = ${today} AND user_id = ${user_id};`;
+    const data = await sql`SELECT id, name FROM categories`;
     return data;
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to create user data.");
+    throw new Error("Failed to fetch categories data.");
+  }
+}
+
+//今月の支出金額の合計
+export async function fetchThisMonthRecordSum(user_id: number) {
+  try {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const firstDay = `${year}-${month}-01`;
+    const lastDay = `${year}-${month}-${new Date(
+      year,
+      date.getMonth() + 1,
+      0
+    ).getDate()}`;
+
+    const data = await sql`
+      SELECT SUM(amount) AS sum
+      FROM expenses
+      WHERE recorded_on >= ${firstDay}
+        AND recorded_on <= ${lastDay}
+        AND user_id = ${user_id};
+    `;
+
+    return data[0].sum || 0;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch this month data.");
+  }
+}
+
+//今年の出費（グラフのデータ）の取得
+export async function fetchThisYearExpenses(thisYear: string, user_id: number) {
+  try {
+    const data = await sql`SELECT EXTRACT(YEAR FROM recorded_on) AS year,
+    CASE EXTRACT(MONTH FROM recorded_on)
+    WHEN 1 THEN '1月'
+    WHEN 2 THEN '2月'
+    WHEN 3 THEN '3月'
+    WHEN 4 THEN '4月'
+    WHEN 5 THEN '5月'
+    WHEN 6 THEN '6月'
+    WHEN 7 THEN '7月'
+    WHEN 8 THEN '8月'
+    WHEN 9 THEN '9月'
+    WHEN 10 THEN '10月'
+    WHEN 11 THEN '11月'
+    WHEN 12 THEN '12月'
+    END AS month, 
+    SUM(amount) AS amount_sum FROM expenses 
+    WHERE EXTRACT(YEAR FROM recorded_on) = ${thisYear} AND user_id = ${user_id} GROUP BY year, month ORDER BY month;`;
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch this yesr record data.");
+  }
+}
+
+//これまでの支出合計（カテゴリ別）
+export async function fetchRecordAverage(user_id: number) {
+  try {
+    const data =
+      await sql`SELECT e.category_id, c.name AS category_name, AVG(e.amount) AS avg FROM expenses AS e
+      INNER JOIN categories AS c ON e.category_id = c.id
+      WHERE e.user_id = ${user_id} GROUP BY e.category_id, c.name ORDER BY e.category_id;`;
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch average record data.");
+  }
+}
+
+//日ごとの支出合計
+export async function fetchDayRecordSum(user_id: number) {
+  try {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const firstDay = `${year}-${month}-01`;
+    const lastDay = `${year}-${month}-${new Date(
+      year,
+      date.getMonth() + 1,
+      0
+    ).getDate()}`;
+    const data = await sql`
+      SELECT recorded_on as date, amount
+      FROM expenses WHERE recorded_on >= ${firstDay}
+        AND recorded_on <= ${lastDay}
+        AND user_id = ${user_id};`;
+    return data || 0;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch some day record data.");
   }
 }
 
 //支出金額の記録
 export async function updateRecord(
   user_id: number,
-  formValue: RecordFormValue
+  date: Date,
+  formValue: Record<string, number>
 ) {
   try {
-    const today = formatDate(new Date());
     const existingData =
-      await sql`SELECT recorded_on, user_id, category_id FROM expenses 
-      WHERE recorded_on = ${today} AND user_id = ${user_id};`;
+      await sql`SELECT recorded_on, user_id, category_id FROM expenses
+      WHERE recorded_on = ${date} AND user_id = ${user_id};`;
 
-    type RecordFormValueKey = keyof RecordFormValue;
+    type RecordFormValueKey = keyof RecordFromArray;
     if (existingData.length > 0) {
       for (let i = 1; i <= Object.keys(formValue).length; i++) {
         const key = String(i) as RecordFormValueKey;
-        const amount = String(formValue[key]) === "" ? null : formValue[key];
-        await sql`UPDATE expenses SET amount = ${amount} WHERE recorded_on = ${today} AND user_id = ${user_id} AND category_id = ${i};`;
+        if (String(formValue[key]) !== "") {
+          const amount = formValue[key];
+          await sql`UPDATE record SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${i};`;
+        }
       }
     } else {
       for (let i = 1; i <= Object.keys(formValue).length; i++) {
         const key = String(i) as RecordFormValueKey;
-        const amount = String(formValue[key]) === "" ? null : formValue[key];
-        await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${today}, ${amount}, ${user_id}, ${i});`;
+        if (String(formValue[key]) !== "") {
+          const amount = formValue[key];
+          await sql`INSERT INTO record(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
+        }
       }
     }
   } catch (error) {
