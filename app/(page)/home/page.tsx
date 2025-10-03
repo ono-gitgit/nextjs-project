@@ -342,7 +342,21 @@ export default function Home() {
                         tickMargin={8}
                         tickFormatter={(value) => value.slice(0, 3)}
                       />
-                      <YAxis tickLine={false} axisLine={true} />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={true}
+                        domain={[
+                          0,
+                          Number(
+                            chartData.reduce((acc, pre) => {
+                              if (Number(pre.amount_sum) >= Number(acc)) {
+                                return pre.amount_sum;
+                              }
+                              return acc;
+                            }, 0)
+                          ) + 10,
+                        ]}
+                      />
                       <ChartTooltip
                         cursor={false}
                         content={<ChartTooltipContent hideLabel />}
