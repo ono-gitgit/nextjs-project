@@ -1,7 +1,7 @@
 "use client";
 import { BackgroundColor } from "@/app/components/BackgroundColor";
 import IconAndTitle from "@/app/components/IconAndTitle";
-import { formatDateToString } from "@/app/lib/utils";
+import { formatDate, formatDateToString } from "@/app/lib/utils";
 import { RecordFromArray } from "@/app/types/types";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
@@ -62,6 +62,10 @@ import { useForm } from "react-hook-form";
 //   acc[cur.name] = Number(cur.value);
 //   return acc;
 // }, {} as Record<string, number>);
+type DayCategoriesAmountData = {
+  amount: number;
+  category_id: number;
+};
 export default function Record() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -76,7 +80,7 @@ export default function Record() {
     const categories: RecordFromArray[] = await data.json();
     const others = categories.find(
       (category) => category.name === "その他"
-    ) ?? { id: 999, name: "その他" };
+    ) ?? { id: 9999, name: "その他" };
     const noOthersCategories = categories.filter(
       (category) => category.name !== "その他"
     );
@@ -89,6 +93,19 @@ export default function Record() {
     }
   }, []);
 
+  const setNewDefaultValues = async (date: string) => {
+    reset();
+    const amountData = await fetch(
+      `/api/records?user_id=${sessionStorage.getItem(
+        "user_id"
+      )}&target=dayCategoriesRecord&date=${date}'`
+    );
+    const amountDataJson: DayCategoriesAmountData[] = await amountData.json();
+    for (const data of amountDataJson) {
+      setValue(String(data.category_id), data.amount);
+    }
+  };
+
   useEffect(() => {
     createFromArrayDefaultValues();
   }, [createFromArrayDefaultValues]);
@@ -96,12 +113,15 @@ export default function Record() {
   const {
     register,
     getValues,
+    setValue,
     reset,
     formState: { errors },
     handleSubmit,
   } = useForm({ defaultValues });
+
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
+    setNewDefaultValues(formatDate(date));
     setIsDialogOpen(true);
   };
 
@@ -113,14 +133,13 @@ export default function Record() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user_id: sessionStorage.getItem("user_id"),
-        date: selectedDate.toISOString().split("T")[0],
+        date: formatDate(selectedDate),
         RecordFormValue: formValues,
       }),
     });
     const json = await data.json();
     if (json.result === "success") {
       alert("記録しました");
-      reset();
     }
     setIsLoading(false);
   };
@@ -139,9 +158,7 @@ export default function Record() {
 
             <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
               <DialogTitle>
-                {selectedDate
-                  ? `${formatDateToString(new Date(selectedDate))}の支出入力`
-                  : ""}
+                {formatDateToString(new Date(selectedDate))}の支出入力
               </DialogTitle>
               <DialogContent>
                 <form

@@ -1,6 +1,6 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
-import { RecordFromArray, User } from "@/app/types/types";
+import { User } from "@/app/types/types";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -132,7 +132,7 @@ export async function fetchThisYearExpenses(thisYear: string, user_id: number) {
   }
 }
 
-//これまでの支出合計（カテゴリ別）
+//これまでの支出平均（カテゴリ別）
 export async function fetchRecordAverage(user_id: number) {
   try {
     const data =
@@ -160,36 +160,67 @@ export async function fetchDayRecordSum(user_id: number) {
   }
 }
 
+//日ごとのカテゴリ別支出合計
+export async function fetchDayCategoriesRecord(date: string, user_id: number) {
+  try {
+    const data =
+      await sql`SELECT amount, category_id FROM expenses WHERE recorded_on = ${date} AND user_id = ${user_id}`;
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch some day categories record data.");
+  }
+}
+
 //支出金額の記録
 export async function updateRecord(
   user_id: number,
   date: Date,
   formValue: Record<string, number>
 ) {
-  console.log(date);
   try {
     const existingData =
       await sql`SELECT recorded_on, user_id, category_id FROM expenses
       WHERE recorded_on = ${date} AND user_id = ${user_id};`;
-
-    type RecordFormValueKey = keyof RecordFromArray;
-    if (existingData.length > 0) {
-      for (let i = 1; i <= Object.keys(formValue).length; i++) {
-        const key = String(i) as RecordFormValueKey;
-        if (String(formValue[key]) !== "") {
-          const amount = formValue[key];
-          await sql`UPDATE expenses SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${i};`;
+    const categories = await sql`SELECT id FROM categories `;
+    for (const categoryId of categories) {
+      const id = categoryId.id;
+      const amount = formValue[id];
+      let isUpdate = false;
+      if (String(amount) !== "") {
+        for (const data of existingData) {
+          if (data.category_id == id) {
+            await sql`UPDATE expenses SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${id};`;
+            isUpdate = true;
+          }
         }
-      }
-    } else {
-      for (let i = 1; i <= Object.keys(formValue).length; i++) {
-        const key = String(i) as RecordFormValueKey;
-        if (String(formValue[key]) !== "") {
-          const amount = formValue[key];
-          await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
+        if (!isUpdate) {
+          await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${id});`;
         }
       }
     }
+    // type RecordFormValueKey = keyof RecordFromArray;
+    // if (existingData.length > 0) {
+    //   for (let i = 1; i <= Object.keys(formValue).length; i++) {
+    //     const key = String(i) as RecordFormValueKey;
+    //     const amount = formValue[key];
+    //     for (const data of existingData) {
+    //       if (String(formValue[key]) !== "" && key == data.category_id) {
+    //         await sql`UPDATE expenses SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${i};`;
+    //       } else {
+    //         await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
+    //       }
+    //     }
+    //   }
+    // } else {
+    //   for (let i = 1; i <= Object.keys(formValue).length; i++) {
+    //     const key = String(i) as RecordFormValueKey;
+    //     if (String(formValue[key]) !== "") {
+    //       const amount = formValue[key];
+    //       await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
+    //     }
+    //   }
+    // }
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to create user data.");

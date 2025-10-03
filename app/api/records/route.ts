@@ -1,4 +1,5 @@
 import {
+  fetchDayCategoriesRecord,
   fetchDayRecordSum,
   fetchRecordAverage,
   fetchThisMonthRecordSum,
@@ -26,6 +27,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(data);
     } else if (target == "days") {
       const data = await fetchDayRecordSum(user_id);
+      return NextResponse.json(data);
+    } else if (target == "dayCategoriesRecord") {
+      const data = await fetchDayCategoriesRecord(
+        searchParams.get("date") as string,
+        user_id
+      );
       return NextResponse.json(data);
     }
   } catch (error) {
