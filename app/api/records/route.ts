@@ -1,13 +1,33 @@
-import { fetchThisMonthRecordSum, updateRecord } from "@/app/lib/api";
+import {
+  fetchDayRecordSum,
+  fetchRecordAverage,
+  fetchThisMonthRecordSum,
+  fetchThisYearExpenses,
+  updateRecord,
+} from "@/app/lib/api";
 import { NextRequest, NextResponse } from "next/server";
 
-//ログインユーザーの今月の支出を取得
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const user_id = Number(searchParams.get("user_id"));
-    const data = await fetchThisMonthRecordSum(user_id);
-    return NextResponse.json(data);
+    const target = searchParams.get("target");
+    if (target == "thisMonth") {
+      const data = await fetchThisMonthRecordSum(user_id);
+      return NextResponse.json(data);
+    } else if (target == "thisYear") {
+      const data = await fetchThisYearExpenses(
+        new Date().getFullYear().toString(),
+        user_id
+      );
+      return NextResponse.json(data);
+    } else if (target == "average") {
+      const data = await fetchRecordAverage(user_id);
+      return NextResponse.json(data);
+    } else if (target == "days") {
+      const data = await fetchDayRecordSum(user_id);
+      return NextResponse.json(data);
+    }
   } catch (error) {
     if (error instanceof Error) {
       console.error("Database Error:", error.message);

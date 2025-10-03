@@ -34,7 +34,7 @@ import GasMeterIcon from "@mui/icons-material/GasMeter";
 import MapsHomeWorkIcon from "@mui/icons-material/MapsHomeWork";
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import WalletIcon from "@mui/icons-material/Wallet";
-import { formatDateToString, formatNumber } from "@/app/lib/utils";
+import { formatDate, formatDateToString, formatNumber } from "@/app/lib/utils";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
@@ -89,8 +89,7 @@ export default function Home() {
     { month: "12月", amount_sum: 0 },
   ]);
   const [recordsAvgList, setRecordAvgList] = useState<RecordAvg[]>([]);
-  const [date, setDate] = useState<Date>(new Date());
-  const [records, setExpenses] = useState<Expense[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
   //ユーザーアイコンの取得
   const fetchUserIcon = useCallback(async (icon_id: number) => {
@@ -172,10 +171,10 @@ export default function Home() {
     setExpenses(() => newExpenses);
   };
 
-  //今月のある日の支出合計を表示
+  //ある月のある日の支出合計を表示
   const showDailyTotal = (day: Date) => {
     const dayStr = day.toISOString().split("T")[0];
-    const total = records
+    const total = expenses
       .filter((e) => e.date === dayStr)
       .reduce((sum, e) => sum + e.amount, 0);
     return total > 0 ? `¥${total}` : null;
@@ -252,7 +251,7 @@ export default function Home() {
                 <div className="max-w-20 font-bold">{userName}</div>
               </div>
               <button
-                className="mr-10 max-w-20 font-bold"
+                className="mr-10 max-w-20 font-bold hover:shadow-2xl rounded-2xl"
                 onClick={() => {
                   setIsDialogOpen(true);
                 }}
@@ -325,13 +324,13 @@ export default function Home() {
                 <CardContent className="mt-3">
                   <ChartContainer
                     config={chartConfig}
-                    className="h-[200px] w-[80vw]"
+                    className="h-[200px] w-[80vw] mr-3"
                   >
                     <LineChart
                       accessibilityLayer
                       data={chartData}
                       margin={{
-                        left: -20,
+                        top: 10,
                         right: 12,
                       }}
                     >
@@ -383,13 +382,41 @@ export default function Home() {
                   <hr className="border-black border-2 rounded-[5px]" />
                 </h1>
               </div>
-              <Tabs defaultValue="expendAverage" className="mt-3">
+              <Tabs defaultValue="thisMonthExpend" className="mt-3">
                 <TabsList className="w-[80vw] mx-auto">
+                  <TabsTrigger value="thisMonthExpend">
+                    日ごとの支出
+                  </TabsTrigger>
                   <TabsTrigger value="expendAverage">
                     これまでの支出の平均
                   </TabsTrigger>
-                  <TabsTrigger value="thisMonthExpend">今月の支出</TabsTrigger>
                 </TabsList>
+                <TabsContent value="thisMonthExpend" className="max-w-[95vw]">
+                  <Calendar
+                    onChange={() => {}}
+                    value={new Date()}
+                    minDetail="month"
+                    // prevLabel={null}
+                    // nextLabel={null}
+                    // prev2Label={null}
+                    // next2Label={null}
+                    // showNeighboringMonth={false}
+                    tileContent={({ date }) => (
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          color:
+                            formatDate(date) === formatDate(new Date())
+                              ? "lightgreen"
+                              : "green",
+                        }}
+                      >
+                        {showDailyTotal(date)}
+                      </p>
+                    )}
+                  />
+                  <p>今日の日付: {formatDateToString(new Date())}</p>
+                </TabsContent>
                 <TabsContent value="expendAverage">
                   <Table className="bg-gray-200">
                     <TableBody>
@@ -417,6 +444,9 @@ export default function Home() {
                             {recordsAvg.category_name === "医療費" && (
                               <MedicalServicesIcon className="text-[#FF3823]" />
                             )}
+                            {recordsAvg.category_name === "書籍" && (
+                              <MedicalServicesIcon className="text-[#1B7837]" />
+                            )}
                             {recordsAvg.category_name === "その他" && (
                               <WalletIcon />
                             )}
@@ -429,24 +459,6 @@ export default function Home() {
                       ))}
                     </TableBody>
                   </Table>
-                </TabsContent>
-                <TabsContent value="thisMonthExpend" className="max-w-[95vw]">
-                  <Calendar
-                    onChange={(day) => setDate(day as Date)}
-                    value={date}
-                    minDetail="month"
-                    // prevLabel={null}
-                    // nextLabel={null}
-                    // prev2Label={null}
-                    // next2Label={null}
-                    // showNeighboringMonth={false}
-                    tileContent={({ date }) => (
-                      <p style={{ fontSize: "12px", color: "green" }}>
-                        {showDailyTotal(date)}
-                      </p>
-                    )}
-                  />
-                  <p>選択日: {formatDateToString(date)}</p>
                 </TabsContent>
               </Tabs>
             </div>

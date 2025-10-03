@@ -138,7 +138,7 @@ export async function fetchRecordAverage(user_id: number) {
     const data =
       await sql`SELECT e.category_id, c.name AS category_name, AVG(e.amount) AS avg FROM expenses AS e
       INNER JOIN categories AS c ON e.category_id = c.id
-      WHERE e.user_id = ${user_id} GROUP BY e.category_id, c.name ORDER BY e.category_id;`;
+      WHERE e.user_id = ${user_id} GROUP BY e.category_id, c.name ORDER BY avg DESC;`;
     return data;
   } catch (error) {
     console.error("Database Error:", error);
@@ -149,20 +149,10 @@ export async function fetchRecordAverage(user_id: number) {
 //日ごとの支出合計
 export async function fetchDayRecordSum(user_id: number) {
   try {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const firstDay = `${year}-${month}-01`;
-    const lastDay = `${year}-${month}-${new Date(
-      year,
-      date.getMonth() + 1,
-      0
-    ).getDate()}`;
     const data = await sql`
       SELECT recorded_on as date, amount
-      FROM expenses WHERE recorded_on >= ${firstDay}
-        AND recorded_on <= ${lastDay}
-        AND user_id = ${user_id};`;
+      FROM expenses WHERE
+        user_id = ${user_id};`;
     return data || 0;
   } catch (error) {
     console.error("Database Error:", error);
@@ -176,6 +166,7 @@ export async function updateRecord(
   date: Date,
   formValue: Record<string, number>
 ) {
+  console.log(date);
   try {
     const existingData =
       await sql`SELECT recorded_on, user_id, category_id FROM expenses
@@ -187,7 +178,7 @@ export async function updateRecord(
         const key = String(i) as RecordFormValueKey;
         if (String(formValue[key]) !== "") {
           const amount = formValue[key];
-          await sql`UPDATE record SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${i};`;
+          await sql`UPDATE expenses SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${i};`;
         }
       }
     } else {
@@ -195,7 +186,7 @@ export async function updateRecord(
         const key = String(i) as RecordFormValueKey;
         if (String(formValue[key]) !== "") {
           const amount = formValue[key];
-          await sql`INSERT INTO record(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
+          await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
         }
       }
     }
