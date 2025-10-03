@@ -30,11 +30,7 @@ export type GoalSettingFormValue = {
   goal: number;
 };
 
-export type RecordFormValue = {
-  "1": number;
-  "2": number;
-  "3": number;
-  "4": number;
-  "6": number;
-  "5": number;
+export type RecordFromArray = {
+  id: number;
+  name: string;
 };
