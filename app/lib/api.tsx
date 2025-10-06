@@ -8,8 +8,20 @@ const sql = neon(`${process.env.DATABASE_URL}`);
 export async function fetchUsers() {
   try {
     const data =
-      await sql`SELECT id, name, password, email_address, icon_id, goal, rank_id, is_deleted FROM users`;
+      await sql`SELECT id, name, password, email_address, icon_id, goal, rank_id, is_deleted FROM users;`;
     return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch user data.");
+  }
+}
+
+//特定のユーザーの取得
+export async function fetchTheUser(user_id: number) {
+  try {
+    const data =
+      await sql`SELECT name, password, email_address, icon_id, password FROM users WHERE id = ${user_id};`;
+    return data[0];
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch user data.");
@@ -29,6 +41,17 @@ export async function createUser(user: User) {
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to create user data.");
+  }
+}
+
+//ユーザーの編集
+export async function editUser(user_id: number, user: User) {
+  try {
+    await sql`UPDATE users SET name = ${user.name}, password = ${user.password}, email_address = ${user.email_address}, icon_id = ${user.icon_id} 
+    WHERE id = ${user_id};`;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to edit user data.");
   }
 }
 
@@ -199,28 +222,6 @@ export async function updateRecord(
         }
       }
     }
-    // type RecordFormValueKey = keyof RecordFromArray;
-    // if (existingData.length > 0) {
-    //   for (let i = 1; i <= Object.keys(formValue).length; i++) {
-    //     const key = String(i) as RecordFormValueKey;
-    //     const amount = formValue[key];
-    //     for (const data of existingData) {
-    //       if (String(formValue[key]) !== "" && key == data.category_id) {
-    //         await sql`UPDATE expenses SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${i};`;
-    //       } else {
-    //         await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
-    //       }
-    //     }
-    //   }
-    // } else {
-    //   for (let i = 1; i <= Object.keys(formValue).length; i++) {
-    //     const key = String(i) as RecordFormValueKey;
-    //     if (String(formValue[key]) !== "") {
-    //       const amount = formValue[key];
-    //       await sql`INSERT INTO expenses(recorded_on, amount, user_id, category_id) VALUES (${date}, ${amount}, ${user_id}, ${i});`;
-    //     }
-    //   }
-    // }
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to create user data.");

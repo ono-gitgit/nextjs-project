@@ -1,24 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import IconAndTitle from "./IconAndTitle";
+import { FormArray } from "@/app/types/types";
 
-type radioOption = {
-  value: number;
-  src: string;
-  alt: string;
-};
-type form = {
-  label: string;
-  name: string;
-  value: string | number;
-  validationRule?: object;
-  type: string;
-  link?: string;
-  linkPath?: string;
-  radioOptions?: radioOption[];
-};
 type formValues = {
   [key: string]: string | number;
 };
@@ -28,7 +14,7 @@ type Props = {
   title: string;
   description?: string;
   yenMark?: string;
-  formArray: form[];
+  formArray: FormArray[];
   onSubmit: (formValues: formValues) => void;
   bottonName: string;
   children?: React.ReactNode;
@@ -54,9 +40,15 @@ export default function Form({
   const {
     register,
     getValues,
+    reset,
     formState: { errors },
     handleSubmit,
   } = useForm({ defaultValues });
+
+  useEffect(() => {
+    reset(defaultValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formArray]);
   return (
     <div className="justify-items-center">
       <main className="flex flex-col gap-[32px] row-start-2">

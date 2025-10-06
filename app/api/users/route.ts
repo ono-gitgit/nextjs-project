@@ -1,9 +1,15 @@
-import { fetchUsers, createUser } from "@/app/lib/api";
+import { fetchUsers, createUser, editUser, fetchTheUser } from "@/app/lib/api";
 import { NextResponse, NextRequest } from "next/server";
 
 //ユーザー検索
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const user_id = Number(searchParams.get("user_id"));
+    if (user_id) {
+      const theUser = await fetchTheUser(user_id);
+      return NextResponse.json(theUser);
+    }
     const users = await fetchUsers();
     return NextResponse.json(users);
   } catch (error) {
@@ -16,13 +22,18 @@ export async function GET() {
   }
 }
 
-//ユーザー（アカウント）作成
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const user = await body.user;
-    await createUser(user);
-    return NextResponse.json({ succsess: true });
+    const target = await body.target;
+    if (target === "add") {
+      await createUser(user);
+      return NextResponse.json({ succsess: true });
+    } else if (target === "edit") {
+      const user_id = await body.user_id;
+      await editUser(user_id, user);
+    }
   } catch (error) {
     if (error instanceof Error) {
       console.error("Database Error:", error.message);
