@@ -79,7 +79,7 @@ export default function CreateAccount() {
     const response = await fetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user }),
+      body: JSON.stringify({ user, target: "add" }),
     });
     const result = await response.json();
     if (result.succsess) {
