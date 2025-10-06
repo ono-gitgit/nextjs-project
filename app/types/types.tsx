@@ -14,6 +14,22 @@ export type User = {
   icon_id: number;
 };
 
+type RadioOption = {
+  value: number;
+  src: string;
+  alt: string;
+};
+export type FormArray = {
+  label: string;
+  name: string;
+  value: string | number;
+  validationRule?: object;
+  type: string;
+  link?: string;
+  linkPath?: string;
+  radioOptions?: RadioOption[];
+};
+
 export type LoginFormValue = {
   email_address: string;
   password: string | number;
