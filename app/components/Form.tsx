@@ -88,13 +88,20 @@ export default function Form({
                     </label>
                   ))}
                 </div>
+              ) : field.type === "textarea" ? (
+                <label>
+                  <textarea
+                    {...register(field.name, field.validationRule)}
+                    className="border-2 w-[240px] border-gray-500 bg-[#FAFAFA]"
+                  />
+                </label>
               ) : (
                 <label>
                   <span className="text-2xl">{yenMark}</span>
                   <input
                     {...register(field.name, field.validationRule)}
                     type={field.type}
-                    className="border-2 border-gray-500 bg-[#FAFAFA]"
+                    className="border-2 w-[240px] border-gray-500 bg-[#FAFAFA]"
                   />
                 </label>
               )}

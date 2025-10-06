@@ -27,7 +27,7 @@ export default function IconAndTitle({
       <h1 className="mt-3 text-center font-bold text-3xl font-serif">
         {title}
       </h1>
-      <p className="text-sm">{description}</p>
+      <p className="max-w-[323px] text-sm">{description}</p>
     </>
   );
 }

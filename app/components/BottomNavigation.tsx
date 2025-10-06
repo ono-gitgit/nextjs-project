@@ -114,7 +114,7 @@ const ShowOthersDialog: React.FC<Prop> = ({ isOpen, handleClose }) => {
           <li>
             <button
               onClick={() => {
-                router.push("/inquiry");
+                router.push("/inquiryInput");
                 sessionStorage.setItem("navigation", "others");
               }}
               className={className}

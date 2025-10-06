@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     } else if (target === "edit") {
       const user_id = await body.user_id;
       await editUser(user_id, user);
+      return NextResponse.json({ succsess: true });
     }
   } catch (error) {
     if (error instanceof Error) {

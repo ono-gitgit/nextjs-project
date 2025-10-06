@@ -133,7 +133,6 @@ export default function EditAccount() {
           sessionStorage.setItem("user_id", aUser.id);
           sessionStorage.setItem("user_name", user.name);
           sessionStorage.setItem("icon_id", String(user.icon_id));
-          sessionStorage.setItem("rank_id", "1");
           break;
         }
       }
@@ -163,11 +162,12 @@ export default function EditAccount() {
         ></Form>
         <Dialog open={isDialogOpen}>
           <DialogTitle>
-            <p>アカウントが作成できました！</p>
+            <p>アカウントを編集できました！</p>
           </DialogTitle>
           <DialogActions>
             <button
               onClick={() => {
+                sessionStorage.setItem("navigation", "home");
                 router.push("/home");
               }}
               className="text-3xl text-blue-500 w-20"
