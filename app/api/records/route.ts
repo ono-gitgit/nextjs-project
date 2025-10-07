@@ -1,6 +1,7 @@
 import {
   fetchDayCategoriesRecord,
   fetchDayRecordSum,
+  fetchLastMonthRecordSum,
   fetchRecordAverage,
   fetchThisMonthRecordSum,
   fetchThisYearExpenses,
@@ -15,6 +16,9 @@ export async function GET(req: NextRequest) {
     const target = searchParams.get("target");
     if (target == "thisMonth") {
       const data = await fetchThisMonthRecordSum(user_id);
+      return NextResponse.json(data);
+    } else if (target == "lastMonth") {
+      const data = await fetchLastMonthRecordSum(user_id);
       return NextResponse.json(data);
     } else if (target == "thisYear") {
       const data = await fetchThisYearExpenses(

@@ -44,19 +44,51 @@ export default function Login() {
     },
   ];
 
+  const updateSessionAndDataRankId = async (
+    user_id: number,
+    rank_id: number
+  ) => {
+    await fetch("/api/users?target=updateRankId", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, rank_id }),
+    });
+    sessionStorage.setItem("rank_id", String(rank_id));
+  };
+
+  const updateRankId = async (user_id: number, goal: number) => {
+    const record = await fetch(
+      `/api/records?user_id=${user_id}&target=lastMonth`
+    );
+    const recordJson = await record.json();
+    const recordJsonNum = Number(recordJson);
+    const budgetDeviation = ((goal - recordJsonNum) / goal) * 100;
+    if (budgetDeviation < 1 || recordJsonNum === 0 || goal === null) {
+      await updateSessionAndDataRankId(user_id, 1);
+    } else if (budgetDeviation >= 1 && budgetDeviation < 5) {
+      await updateSessionAndDataRankId(user_id, 2);
+    } else if (budgetDeviation >= 5 && budgetDeviation < 10) {
+      await updateSessionAndDataRankId(user_id, 3);
+    } else if (budgetDeviation >= 10 && budgetDeviation < 20) {
+      await updateSessionAndDataRankId(user_id, 4);
+    } else if (budgetDeviation >= 20) {
+      await updateSessionAndDataRankId(user_id, 5);
+    }
+  };
+
   const onClick = async (formValues: LoginFormValue) => {
     setIsLoading(true);
     const users = await fetch(
       `/api/users?email_address=${formValues.email_address}&password=${formValues.password}`
     );
-    const json = await users.json();
-    if (json.is_deleted === false) {
+    const userJson = await users.json();
+    if (userJson.is_deleted === false) {
       sessionStorage.setItem("navigation", "home");
-      sessionStorage.setItem("user_id", json.id);
-      sessionStorage.setItem("user_name", json.name);
-      sessionStorage.setItem("icon_id", json.icon_id);
-      sessionStorage.setItem("goal", json.goal);
-      sessionStorage.setItem("rank_id", json.rank_id);
+      sessionStorage.setItem("user_id", userJson.id);
+      sessionStorage.setItem("user_name", userJson.name);
+      sessionStorage.setItem("icon_id", userJson.icon_id);
+      sessionStorage.setItem("goal", userJson.goal);
+      await updateRankId(userJson.id, Number(userJson.goal));
       router.push("/home");
     } else {
       console.log(formValues.email_address);

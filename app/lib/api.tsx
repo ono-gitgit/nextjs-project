@@ -80,6 +80,16 @@ export async function fetchRank(id: number) {
   }
 }
 
+//ランクデータのアップデート
+export async function updateUserRankId(id: number, rank_id: number) {
+  try {
+    await sql`UPDATE users SET rank_id = ${rank_id} WHERE id = ${id};`;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to upadate rank id data.");
+  }
+}
+
 //目標金額の設定
 export async function updateUserGoal(id: number, goal: number) {
   try {
@@ -113,6 +123,34 @@ export async function fetchThisMonthRecordSum(user_id: number) {
     const lastDay = `${year}-${month}-${new Date(
       year,
       date.getMonth() + 1,
+      0
+    ).getDate()}`;
+
+    const data = await sql`
+      SELECT SUM(amount) AS sum
+      FROM expenses
+      WHERE recorded_on >= ${firstDay}
+        AND recorded_on <= ${lastDay}
+        AND user_id = ${user_id};
+    `;
+
+    return data[0].sum || 0;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch this month data.");
+  }
+}
+
+//先月の支出金額の合計
+export async function fetchLastMonthRecordSum(user_id: number) {
+  try {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth()).padStart(2, "0");
+    const firstDay = `${year}-${month}-01`;
+    const lastDay = `${year}-${month}-${new Date(
+      year,
+      date.getMonth(),
       0
     ).getDate()}`;
 

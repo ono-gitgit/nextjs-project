@@ -3,6 +3,7 @@ import {
   editUser,
   fetchTheUser,
   fetchUserToCheckLogin,
+  updateUserRankId,
 } from "@/app/lib/api";
 import { NextResponse, NextRequest } from "next/server";
 
@@ -31,15 +32,21 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const target = searchParams.get("target");
     const body = await req.json();
     const user = await body.user;
-    const target = await body.target;
     if (target === "add") {
       await createUser(user);
       return NextResponse.json({ succsess: true });
     } else if (target === "edit") {
       const user_id = await body.user_id;
       await editUser(user_id, user);
+      return NextResponse.json({ succsess: true });
+    } else if (target === "updateRankId") {
+      const user_id = await body.user_id;
+      const rank_id = await body.rank_id;
+      await updateUserRankId(user_id, rank_id);
       return NextResponse.json({ succsess: true });
     }
   } catch (error) {
