@@ -108,12 +108,11 @@ export default function EditAccount() {
 
   const onClick = async (user: CreateAccountFormValue) => {
     setIsLoading(true);
-    const response = await fetch("/api/users", {
+    const response = await fetch("/api/users?target=edit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user,
-        target: "edit",
         user_id,
       }),
     });

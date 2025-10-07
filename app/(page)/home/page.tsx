@@ -105,12 +105,7 @@ export default function Home() {
 
   //今月の支出合計の取得
   const fetchthisMonthRecordSum = useCallback(async (user_id: number) => {
-    const res = await fetch(
-      `/api/records?user_id=${user_id}&target=thisMonth`,
-      {
-        method: "GET",
-      }
-    );
+    const res = await fetch(`/api/records?user_id=${user_id}&target=thisMonth`);
     const thisMonthRecordSum = await res.json();
     setthisMonthRecordSum(() => thisMonthRecordSum);
   }, []);
@@ -267,6 +262,14 @@ export default function Home() {
                 <div
                   className={`mt-[-10px] max-w-20 text-2xl font-bold ${
                     rank.name == "Bronze" && "text-[#9A6229]"
+                  } ${rank.name == "Silver" && "text-[#C0C0C0]"} ${
+                    rank.name == "Gold" && "text-[#D3AF37]"
+                  } ${
+                    rank.name == "Platinum" &&
+                    "text-[17px] font-extrabold bg-gradient-to-r from-gray-600 via-gray-400 to-gray-700 bg-clip-text text-transparent"
+                  } ${
+                    rank.name == "Master" &&
+                    "pt-3 text-[20px] font-extrabold bg-gradient-to-r from-blue-400 via-blue-300 to-blue-600 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(200,230,255,0.9)]"
                   }`}
                 >
                   {rank.name}

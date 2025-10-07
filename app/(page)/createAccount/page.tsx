@@ -76,10 +76,10 @@ export default function CreateAccount() {
 
   const onClick = async (user: CreateAccountFormValue) => {
     setIsLoading(true);
-    const response = await fetch("/api/users", {
+    const response = await fetch("/api/users?target=add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user, target: "add" }),
+      body: JSON.stringify({ user }),
     });
     const result = await response.json();
     if (result.succsess) {
