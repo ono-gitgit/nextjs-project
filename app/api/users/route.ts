@@ -1,4 +1,9 @@
-import { fetchUsers, createUser, editUser, fetchTheUser } from "@/app/lib/api";
+import {
+  createUser,
+  editUser,
+  fetchTheUser,
+  fetchUserToCheckLogin,
+} from "@/app/lib/api";
 import { NextResponse, NextRequest } from "next/server";
 
 //ユーザー検索
@@ -10,7 +15,9 @@ export async function GET(req: NextRequest) {
       const theUser = await fetchTheUser(user_id);
       return NextResponse.json(theUser);
     }
-    const users = await fetchUsers();
+    const emai_address = String(searchParams.get("email_address"));
+    const password = String(searchParams.get("password"));
+    const users = await fetchUserToCheckLogin(emai_address, password);
     return NextResponse.json(users);
   } catch (error) {
     if (error instanceof Error) {

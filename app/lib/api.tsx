@@ -4,27 +4,14 @@ import { Inquiry, User } from "@/app/types/types";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
-//ユーザーデータの取得
-export async function fetchUsers() {
-  try {
-    const data =
-      await sql`SELECT id, name, password, email_address, icon_id, goal, rank_id, is_deleted FROM users;`;
-    return data;
-  } catch (error) {
-    console.error("Database Error:", error);
-    throw new Error("Failed to fetch user data.");
-  }
-}
-
 //ログインチェックのための、ユーザーデータの取得
 export async function fetchUserToCheckLogin(
   email_address: string,
-  password: string,
-  is_deleted: boolean
+  password: string
 ) {
   try {
     const data =
-      await sql`SELECT * FROM users WHERE email_address = ${email_address} AND password = ${password} AND is_deleted = ${is_deleted};`;
+      await sql`SELECT * FROM users WHERE email_address = ${email_address} AND password = ${password};`;
     return data[0];
   } catch (error) {
     console.error("Database Error:", error);
