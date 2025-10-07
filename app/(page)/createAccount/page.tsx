@@ -84,22 +84,21 @@ export default function CreateAccount() {
     const result = await response.json();
     if (result.succsess) {
       setIsDialogOpen(true);
-      const users = await fetch("/api/users");
+      const users = await fetch(
+        `/api/users?email_address=${user.email_address}&password=${user.password}`
+      );
       const json = await users.json();
-      for (const aUser of json) {
-        console.log(aUser.id);
-        if (
-          aUser.name == user.name &&
-          aUser.email_address == user.email_address &&
-          aUser.password == user.password &&
-          aUser.icon_id == user.icon_id
-        ) {
-          sessionStorage.setItem("user_id", aUser.id);
-          sessionStorage.setItem("user_name", user.name);
-          sessionStorage.setItem("icon_id", String(user.icon_id));
-          sessionStorage.setItem("rank_id", "1");
-          break;
-        }
+      if (
+        json.name == user.name &&
+        json.email_address == user.email_address &&
+        json.password == user.password &&
+        json.icon_id == user.icon_id
+      ) {
+        sessionStorage.setItem("navigation", "home");
+        sessionStorage.setItem("user_id", json.id);
+        sessionStorage.setItem("user_name", user.name);
+        sessionStorage.setItem("icon_id", String(user.icon_id));
+        sessionStorage.setItem("rank_id", "1");
       }
     }
     setIsLoading(false);
