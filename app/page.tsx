@@ -46,25 +46,21 @@ export default function Login() {
 
   const onClick = async (formValues: LoginFormValue) => {
     setIsLoading(true);
-    const users = await fetch("/api/users");
+    const users = await fetch(
+      `/api/users?email_address=${formValues.email_address}&password=${formValues.password}`
+    );
     const json = await users.json();
-    for (const user of json) {
-      if (
-        user.email_address == formValues.email_address &&
-        user.password == formValues.password &&
-        user.is_deleted === false
-      ) {
-        sessionStorage.setItem("navigation", "home");
-        sessionStorage.setItem("user_id", user.id);
-        sessionStorage.setItem("user_name", user.name);
-        sessionStorage.setItem("icon_id", user.icon_id);
-        sessionStorage.setItem("goal", user.goal);
-        sessionStorage.setItem("rank_id", user.rank_id);
-        router.push("/home");
-      } else {
-        console.log(formValues.email_address);
-        alert("該当するユーザーは存在しません");
-      }
+    if (json.is_deleted === false) {
+      sessionStorage.setItem("navigation", "home");
+      sessionStorage.setItem("user_id", json.id);
+      sessionStorage.setItem("user_name", json.name);
+      sessionStorage.setItem("icon_id", json.icon_id);
+      sessionStorage.setItem("goal", json.goal);
+      sessionStorage.setItem("rank_id", json.rank_id);
+      router.push("/home");
+    } else {
+      console.log(formValues.email_address);
+      alert("該当するユーザーは存在しません");
     }
     setIsLoading(false);
   };
