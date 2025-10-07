@@ -14,6 +14,11 @@ export type User = {
   icon_id: number;
 };
 
+export type Inquiry = {
+  name: string;
+  email_address: string;
+  content: string;
+};
 type RadioOption = {
   value: number;
   src: string;

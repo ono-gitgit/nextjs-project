@@ -1,6 +1,6 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
-import { User } from "@/app/types/types";
+import { Inquiry, User } from "@/app/types/types";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -16,7 +16,23 @@ export async function fetchUsers() {
   }
 }
 
-//特定のユーザーの取得
+//ログインチェックのための、ユーザーデータの取得
+export async function fetchUserToCheckLogin(
+  email_address: string,
+  password: string,
+  is_deleted: boolean
+) {
+  try {
+    const data =
+      await sql`SELECT * FROM users WHERE email_address = ${email_address} AND password = ${password} AND is_deleted = ${is_deleted};`;
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch user data.");
+  }
+}
+
+//ログイン済みユーザーの取得
 export async function fetchTheUser(user_id: number) {
   try {
     const data =
@@ -222,6 +238,16 @@ export async function updateRecord(
         }
       }
     }
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to create user data.");
+  }
+}
+
+//お問い合わせの記録
+export async function createInquiry(inquiry: Inquiry) {
+  try {
+    await sql`INSERT INTO inquiries(name, email_address, content) VALUES (${inquiry.name}, ${inquiry.email_address}, ${inquiry.content});`;
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to create user data.");

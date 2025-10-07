@@ -114,7 +114,7 @@ const ShowOthersDialog: React.FC<Prop> = ({ isOpen, handleClose }) => {
           <li>
             <button
               onClick={() => {
-                router.push("/inquiryInput");
+                router.push("/inquiry");
                 sessionStorage.setItem("navigation", "others");
               }}
               className={className}
@@ -125,12 +125,12 @@ const ShowOthersDialog: React.FC<Prop> = ({ isOpen, handleClose }) => {
           <li>
             <button
               onClick={() => {
-                router.push("/cancellation");
-                sessionStorage.setItem("navigation", "others");
+                router.push("/");
+                sessionStorage.clear();
               }}
               className={`text-red-500 ${className}`}
             >
-              退会する
+              ログアウト
             </button>
           </li>
         </ul>
