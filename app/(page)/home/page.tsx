@@ -248,7 +248,7 @@ export default function Home() {
                     width={60}
                   />
                 )}
-                <div className="max-w-30 font-bold">{userName}</div>
+                <div className="max-w-30 text-center font-bold">{userName}</div>
               </div>
               <button
                 className="mr-10 max-w-20 font-bold hover:shadow-2xl rounded-2xl"
