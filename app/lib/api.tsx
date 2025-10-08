@@ -18,6 +18,9 @@ export async function fetchUserToCheckLogin(
   try {
     const data =
       await sql`SELECT * FROM users WHERE email_address = ${email_address} AND password = ${password};`;
+    if (data.length === 0) {
+      return { message: "該当するユーザーが存在しません" };
+    }
     const lastMonth = new Date(
       new Date().getFullYear(),
       new Date().getMonth(),

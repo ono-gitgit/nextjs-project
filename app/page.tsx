@@ -82,10 +82,14 @@ export default function Login() {
       `/api/users?email_address=${formValues.email_address}&password=${formValues.password}`
     );
     const userJson = await users.json();
+    if (userJson.message === "該当するユーザーが存在しません") {
+      alert("該当するユーザーは存在しません");
+      setIsLoading(false);
+      return;
+    }
+    console.log(userJson);
     const lastMonthGoal = await fetch(`/api/goals?user_id=${userJson.id}`);
     const lastMonthGoalJson = await lastMonthGoal.json();
-    console.log("AAAAAAAA");
-    console.log(lastMonthGoalJson);
     if (userJson.is_deleted === false) {
       sessionStorage.setItem("navigation", "home");
       sessionStorage.setItem("user_id", userJson.id);
@@ -98,9 +102,6 @@ export default function Login() {
         sessionStorage.setItem("rank_id", "1");
       }
       router.push("/home");
-    } else {
-      console.log(formValues.email_address);
-      alert("該当するユーザーは存在しません");
     }
     setIsLoading(false);
   };
