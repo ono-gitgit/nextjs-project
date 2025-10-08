@@ -177,6 +177,7 @@ export default function InquiryEdit() {
                 <button
                   onClick={() => {
                     setIsInputScreen(true);
+                    setIsInputCheckScreen(false);
                   }}
                   className="rounded-[10px] mx-auto border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#808080] hover:bg-[#a9a9a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-[190px]"
                 >
