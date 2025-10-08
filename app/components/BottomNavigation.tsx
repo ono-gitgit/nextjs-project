@@ -46,7 +46,7 @@ export const BottomNavigation = () => {
               }`}
             >
               <AssistantPhotoIcon />
-              目標設定
+              予算設定
             </button>
           </li>
           <li>

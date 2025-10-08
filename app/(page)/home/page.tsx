@@ -282,14 +282,14 @@ export default function Home() {
                 budgetDeviation > 0 ? "bg-[#FFD783]" : "bg-[#75A9F9]"
               }`}
             >
-              <dt className="text-[14px]">１か月の上限</dt>
+              <dt className="text-[14px]">今月の予算</dt>
               {goal !== "null" && goal ? (
                 <dd className="text-[26px] break-all">
                   ￥{formatNumber(Number(goal))}
                 </dd>
               ) : (
                 <dd className="mb-2 text-[20px] break-all">
-                  目標が設定されていません
+                  予算が設定されていません
                 </dd>
               )}
               <dt className="text-[14px]">今月の支出</dt>
@@ -501,25 +501,29 @@ const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
       <DialogTitle>ランクとは？</DialogTitle>
       <DialogContent>
         <p className="mb-5">
-          先月の節約率（ （「1か月の上限」 ー 「今月の支出」）÷
-          「1か月の上限」）に応じてランクが 変動します
+          先月の予算に対する節約率（「先月の予算」 - 「先月の出費」 ÷
+          「先月の予算」 × 100）によってランクが変動します
         </p>
         <ul>
           <li className="flex flex-row mb-3">
             <div>Bronze：</div>
-            <div>節約率0%以下（もしくは記録なし）</div>
+            <div>
+              節約率1%未満
+              <br />
+              （または記録なし）
+            </div>
           </li>
           <li className="flex flex-row mb-3">
             <div>Silver：</div>
-            <div>節約率1～5%</div>
+            <div>節約率1%以上5%未満</div>
           </li>
           <li className="flex flex-row mb-3">
             <div>Gold：</div>
-            <div>節約率5～10%</div>
+            <div>節約率5%以上10%未満</div>
           </li>
           <li className="flex flex-row mb-3">
             <div>Platinum：</div>
-            <div>節約率10～20%</div>
+            <div className="text-[15px]">節約率10%以上20%未満</div>
           </li>
           <li className="flex flex-row">
             <div>Master：</div>
