@@ -1,8 +1,14 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
 import { Inquiry, User } from "@/app/types/types";
+import { formatDate } from "@/app/lib/utils";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
+
+//予算テーブルの更新
+async function updateGoal(goal: number, user_id: number) {
+  await sql`UPDATE goals SET this_month_goal = ${null}, last_month_goal = ${goal}, this_month_goal_set_on = ${null} WHERE user_id = ${user_id};`;
+}
 
 //ログインチェックのための、ユーザーデータの取得
 export async function fetchUserToCheckLogin(
@@ -12,7 +18,20 @@ export async function fetchUserToCheckLogin(
   try {
     const data =
       await sql`SELECT * FROM users WHERE email_address = ${email_address} AND password = ${password};`;
-    return data[0];
+    const lastMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      0
+    );
+    const thisMonthGoal =
+      await sql`SELECT this_month_goal AS goal, this_month_goal_set_on FROM goals WHERE user_id = ${data[0].id}`;
+    if (thisMonthGoal[0].this_month_goal_set_on <= lastMonth) {
+      await updateGoal(thisMonthGoal[0].goal, data[0].id);
+      const userData = { ...data[0], goal: null };
+      return userData;
+    }
+    const userData = { ...data[0], goal: thisMonthGoal[0].goal };
+    return userData;
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch user data.");
@@ -23,7 +42,7 @@ export async function fetchUserToCheckLogin(
 export async function fetchTheUser(user_id: number) {
   try {
     const data =
-      await sql`SELECT name, password, email_address, icon_id, password FROM users WHERE id = ${user_id};`;
+      await sql`SELECT name, password, email_address, icon_id FROM users WHERE id = ${user_id};`;
     return data[0];
   } catch (error) {
     console.error("Database Error:", error);
@@ -44,6 +63,9 @@ export async function createUser(user: User) {
       user.icon_id
     }, ${1}, ${false}) 
       RETURNING *; `;
+    const insertedUser =
+      await sql`SELECT id FROM users WHERE email_address = ${user.email_address};`;
+    await sql`INSERT INTO goals(user_id) VALUES (${insertedUser[0].id})`;
     return { message: "アカウントが作成できました" };
   } catch (error) {
     console.error("Database Error:", error);
@@ -94,11 +116,24 @@ export async function updateUserRankId(id: number, rank_id: number) {
   }
 }
 
-//目標金額の設定
-export async function updateUserGoal(id: number, goal: number) {
+//先月の予算の取得
+export async function fetchLastMonthGoal(user_id: number) {
   try {
     const data =
-      await sql`UPDATE users SET goal = ${goal} WHERE id = ${id} RETURNING *;`;
+      await sql`SELECT last_month_goal FROM goals WHERE user_id = ${user_id}`;
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch last month goal data.");
+  }
+}
+
+//予算の設定
+export async function updateUserGoal(id: number, goal: number) {
+  try {
+    const updateOn = formatDate(new Date());
+    const data =
+      await sql`UPDATE goals SET this_month_goal = ${goal}, this_month_goal_set_on = ${updateOn} WHERE user_id = ${id} RETURNING *;`;
     return data;
   } catch (error) {
     console.error("Database Error:", error);

@@ -10,11 +10,11 @@ export default function GoalSetting() {
 
   const formArray = [
     {
-      label: "上限金額（数値のみ）",
+      label: "予算（数値のみ）",
       name: "goal",
       value: "",
       validationRule: {
-        required: "上限金額が入力されていません",
+        required: "予算が入力されていません",
         maxLength: {
           value: 6,
           message: "入力できるの６桁までです",
@@ -47,8 +47,8 @@ export default function GoalSetting() {
         <Form
           icon="/snowboardingRabbit.png"
           iconDescription="スノーボードをしているウサギのイラスト"
-          title="目標を設定する"
-          description="一か月で使う金額の上限値を入力してください"
+          title="予算を設定する"
+          description="今月の予算を入力してください"
           yenMark="￥"
           formArray={formArray}
           onSubmit={(formValues) => {

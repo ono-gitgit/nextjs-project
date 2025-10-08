@@ -82,13 +82,21 @@ export default function Login() {
       `/api/users?email_address=${formValues.email_address}&password=${formValues.password}`
     );
     const userJson = await users.json();
+    const lastMonthGoal = await fetch(`/api/goals?user_id=${userJson.id}`);
+    const lastMonthGoalJson = await lastMonthGoal.json();
+    console.log("AAAAAAAA");
+    console.log(lastMonthGoalJson);
     if (userJson.is_deleted === false) {
       sessionStorage.setItem("navigation", "home");
       sessionStorage.setItem("user_id", userJson.id);
       sessionStorage.setItem("user_name", userJson.name);
       sessionStorage.setItem("icon_id", userJson.icon_id);
       sessionStorage.setItem("goal", userJson.goal);
-      await updateRankId(userJson.id, Number(userJson.goal));
+      if (lastMonthGoalJson.last_month_goal) {
+        await updateRankId(userJson.id, lastMonthGoalJson.last_month_goal);
+      } else {
+        sessionStorage.setItem("rank_id", "1");
+      }
       router.push("/home");
     } else {
       console.log(formValues.email_address);
