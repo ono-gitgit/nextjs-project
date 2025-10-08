@@ -119,22 +119,8 @@ export default function EditAccount() {
     const result = await response.json();
     if (result.succsess) {
       setIsDialogOpen(true);
-      const users = await fetch("/api/users");
-      const json = await users.json();
-      for (const aUser of json) {
-        console.log(aUser.id);
-        if (
-          aUser.name == user.name &&
-          aUser.email_address == user.email_address &&
-          aUser.password == user.password &&
-          aUser.icon_id == user.icon_id
-        ) {
-          sessionStorage.setItem("user_id", aUser.id);
-          sessionStorage.setItem("user_name", user.name);
-          sessionStorage.setItem("icon_id", String(user.icon_id));
-          break;
-        }
-      }
+      sessionStorage.setItem("user_name", user.name);
+      sessionStorage.setItem("icon_id", String(user.icon_id));
     }
     setIsLoading(false);
   };
