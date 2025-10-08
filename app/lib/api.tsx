@@ -34,13 +34,17 @@ export async function fetchTheUser(user_id: number) {
 //ユーザーの作成
 export async function createUser(user: User) {
   try {
-    const data =
-      await sql`INSERT INTO users(name, password, email_address, icon_id, rank_id, is_deleted) 
+    const existingUser =
+      await sql`SELECT email_address FROM users WHERE email_address = ${user.email_address};`;
+    if (existingUser.length >= 1) {
+      return { message: "そのユーザーは既に登録済みです" };
+    }
+    await sql`INSERT INTO users(name, password, email_address, icon_id, rank_id, is_deleted) 
       VALUES (${user.name}, ${user.password}, ${user.email_address}, ${
-        user.icon_id
-      }, ${1}, ${false}) 
+      user.icon_id
+    }, ${1}, ${false}) 
       RETURNING *; `;
-    return data;
+    return { message: "アカウントが作成できました" };
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to create user data.");

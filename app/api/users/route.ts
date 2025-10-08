@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const user = await body.user;
     if (target === "add") {
-      await createUser(user);
-      return NextResponse.json({ succsess: true });
+      const message = await createUser(user);
+      return NextResponse.json(message);
     } else if (target === "edit") {
       const user_id = await body.user_id;
       await editUser(user_id, user);

@@ -13,6 +13,7 @@ export default function CreateAccount() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
 
   const formArray = [
     {
@@ -82,25 +83,20 @@ export default function CreateAccount() {
       body: JSON.stringify({ user }),
     });
     const result = await response.json();
-    if (result.succsess) {
-      setIsDialogOpen(true);
+    console.log(result.message);
+    if (result.message === "アカウントが作成できました") {
       const users = await fetch(
         `/api/users?email_address=${user.email_address}&password=${user.password}`
       );
       const json = await users.json();
-      if (
-        json.name == user.name &&
-        json.email_address == user.email_address &&
-        json.password == user.password &&
-        json.icon_id == user.icon_id
-      ) {
-        sessionStorage.setItem("navigation", "home");
-        sessionStorage.setItem("user_id", json.id);
-        sessionStorage.setItem("user_name", user.name);
-        sessionStorage.setItem("icon_id", String(user.icon_id));
-        sessionStorage.setItem("rank_id", "1");
-      }
+      sessionStorage.setItem("navigation", "home");
+      sessionStorage.setItem("user_id", json.id);
+      sessionStorage.setItem("user_name", user.name);
+      sessionStorage.setItem("icon_id", String(user.icon_id));
+      sessionStorage.setItem("rank_id", "1");
     }
+    setIsDialogOpen(true);
+    setDialogMessage(result.message);
     setIsLoading(false);
   };
 
@@ -140,12 +136,16 @@ export default function CreateAccount() {
         </Form>
         <Dialog open={isDialogOpen}>
           <DialogTitle>
-            <p>アカウントが作成できました！</p>
+            <p>{dialogMessage}</p>
           </DialogTitle>
           <DialogActions>
             <button
               onClick={() => {
-                router.push("/home");
+                if (dialogMessage === "アカウントが作成できました") {
+                  router.push("/home");
+                } else {
+                  setIsDialogOpen(false);
+                }
               }}
               className="text-3xl text-blue-500 w-20"
             >
