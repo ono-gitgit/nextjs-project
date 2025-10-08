@@ -501,9 +501,8 @@ const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
       <DialogTitle>ランクとは？</DialogTitle>
       <DialogContent>
         <p className="mb-5">
-          先月の節約率（
-          「1か月の上限」に対する「今月の支出」の割合）に応じてランクが
-          変動します
+          先月の節約率（ （「1か月の上限」 ー 「今月の支出」）÷
+          「1か月の上限」）に応じてランクが 変動します
         </p>
         <ul>
           <li className="flex flex-row mb-3">
