@@ -149,28 +149,26 @@ export default function InquiryEdit() {
         )}
         {enteredInquiry.content !== "" && isInputCheckScreen && (
           <div className="justify-items-center">
-            <main className="flex flex-col gap-[32px] row-start-2">
-              <p className="mt-3 text-center text-3xl font-serif">
+            <main className="flex flex-col gap-[32px]">
+              <p className="mt-10 text-center text-2xl font-serif">
                 以下の内容でよろしいですか？
               </p>
-              <div className="gap-4 flex-col max-w-70">
+              <div className="mx-auto max-w-[330px]">
                 <div className="mb-8 flex flex-col">
-                  <span className="max-w-[200px] whitespace-pre-line">
+                  <span className="max-w-[200px] font-bold whitespace-pre-line">
                     名前
                   </span>
                   <p className="w-[240px] text-[25px]">{enteredInquiry.name}</p>
-                  <span className="mt-6 max-w-[200px] whitespace-pre-line">
+                  <span className="mt-6 max-w-[200px] font-bold whitespace-pre-line">
                     メールアドレス
                   </span>
                   <p className="w-[240px] text-[25px]">
                     {enteredInquiry.email_address}
                   </p>
-                  <span className="mt-6 max-w-[200px] whitespace-pre-line">
+                  <span className="mt-6 font-bold whitespace-pre-line">
                     お問い合わせ内容
                   </span>
-                  <p className="w-[200px] text-[25px]">
-                    {enteredInquiry.content}
-                  </p>
+                  <p className="">{enteredInquiry.content}</p>
                 </div>
               </div>
               <div className="flex flex-row">
@@ -179,7 +177,7 @@ export default function InquiryEdit() {
                     setIsInputScreen(true);
                     setIsInputCheckScreen(false);
                   }}
-                  className="rounded-[10px] mx-auto border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#808080] hover:bg-[#a9a9a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-[190px]"
+                  className="rounded-[10px] mx-auto border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#808080] hover:bg-[#a9a9a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-[150px]"
                 >
                   戻る
                 </button>
@@ -187,7 +185,7 @@ export default function InquiryEdit() {
                   onClick={() => {
                     onClickSubmit(enteredInquiry);
                   }}
-                  className="rounded-[10px] mx-auto border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#F85F6A] hover:bg-[#f3a4a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-[190px]"
+                  className="rounded-[10px] mx-auto border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#F85F6A] hover:bg-[#f3a4a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-[150px]"
                 >
                   送信
                 </button>
