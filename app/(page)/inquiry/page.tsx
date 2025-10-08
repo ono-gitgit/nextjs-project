@@ -7,7 +7,7 @@ import { FormArray, Inquiry } from "@/app/types/types";
 
 export default function InquiryEdit() {
   const router = useRouter();
-  const [user_id, setUserId] = useState("");
+  //const [userId, setUserId] = useState("");
   const [enteredInquiry, setEnteredInquiry] = useState<Inquiry>({
     name: "",
     email_address: "",
@@ -73,8 +73,8 @@ export default function InquiryEdit() {
     email_address: string;
     icon_id: number;
   };
-  const setDefaultFormValues = useCallback(async () => {
-    const res = await fetch(`/api/users?user_id=${user_id}`);
+  const setDefaultFormValues = useCallback(async (userId: string) => {
+    const res = await fetch(`/api/users?user_id=${userId}`);
     const userData: JsonValue = await res.json();
     setFormArray((prev) => {
       return prev.map((prevObject) => {
@@ -86,11 +86,10 @@ export default function InquiryEdit() {
         return prevObject;
       });
     });
-  }, [user_id]);
+  }, []);
 
   useEffect(() => {
-    setUserId(sessionStorage.getItem("user_id") as string);
-    setDefaultFormValues();
+    setDefaultFormValues(sessionStorage.getItem("user_id") as string);
   }, [setDefaultFormValues]);
 
   const onClickConfirmation = async (inquiry: Inquiry) => {
