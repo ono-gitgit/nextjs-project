@@ -80,8 +80,8 @@ export default function EditAccount() {
     email_address: string;
     icon_id: number;
   };
-  const setDefaultFormValues = useCallback(async () => {
-    const res = await fetch(`/api/users?user_id=${user_id}`);
+  const setDefaultFormValues = useCallback(async (userId: string) => {
+    const res = await fetch(`/api/users?user_id=${userId}`);
     const userData: JsonValue = await res.json();
     console.log("新しい値");
     console.log(userData);
@@ -99,11 +99,11 @@ export default function EditAccount() {
         return prevObject;
       });
     });
-  }, [user_id]);
+  }, []);
 
   useEffect(() => {
     setUserId(sessionStorage.getItem("user_id") as string);
-    setDefaultFormValues();
+    setDefaultFormValues(sessionStorage.getItem("user_id") as string);
   }, [setDefaultFormValues]);
 
   const onClick = async (user: CreateAccountFormValue) => {
