@@ -120,3 +120,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+.react-calendar__tile {
+  height: 60px; /* 高さ */
+  width: 40px;
+  line-height: 60px; /* 数字を縦中央に配置 */
+}
+
+.react-calendar__tile.saturday {
+  color: blue;
+}
