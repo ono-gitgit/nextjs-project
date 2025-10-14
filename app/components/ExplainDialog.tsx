@@ -3,23 +3,29 @@
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
 
 type Prop = {
   isDialogOpen: boolean;
-  dialogMessage: string;
+  title: string;
+  explain: string;
   onClick: () => void;
 };
 
-export default function InputCompleteDialog({
+export default function ExplainDialog({
   isDialogOpen,
-  dialogMessage,
+  title,
+  explain,
   onClick,
 }: Prop) {
   return (
     <Dialog open={isDialogOpen}>
       <DialogTitle>
-        <p>{dialogMessage}！</p>
+        <p>{title}</p>
       </DialogTitle>
+      <DialogContent>
+        <p className="mb-5">{explain}</p>
+      </DialogContent>
       <DialogActions>
         <button
           onClick={() => {

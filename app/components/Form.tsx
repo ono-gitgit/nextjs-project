@@ -2,10 +2,11 @@ import React, { ReactNode, useEffect, useState } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import IconAndTitle from "./IconAndTitle";
+import IconAndTitle from "@/app/components/IconAndTitle";
 import { FormArray } from "@/app/types/types";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import { AutoResizeTextarea } from "./AutoResizeTextarea";
 
 type formValues = {
   [key: string]: string | number;
@@ -83,6 +84,7 @@ export default function Form({
                     <label key={index}>
                       <input
                         {...register(field.name, field.validationRule)}
+                        maxLength={30}
                         type={field.type}
                         value={choices.value}
                       />
@@ -98,9 +100,10 @@ export default function Form({
                 </div>
               ) : field.type === "textarea" ? (
                 <label>
-                  <textarea
+                  <AutoResizeTextarea
                     {...register(field.name, field.validationRule)}
-                    className="border-2 w-[273px] border-gray-500 bg-[#FAFAFA]"
+                    className="border-2 w-[273px] border-gray-500 bg-[#FAFAFA] resize-none overflow-hidden"
+                    maxLength={500}
                   />
                 </label>
               ) : (
@@ -129,6 +132,8 @@ export default function Form({
                           }
                     )}
                     type={fieldType[index]}
+                    min={0}
+                    maxLength={30}
                     className={`border-2 h-[33px] border-gray-500 bg-[#FAFAFA] ${
                       yenMark ? "w-[245px]" : "w-[273px]"
                     }`}
