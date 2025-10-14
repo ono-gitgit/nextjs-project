@@ -4,10 +4,8 @@ import { BackgroundColor } from "@/app/components/BackgroundColor";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { CreateAccountFormValue, FormArray } from "@/app/types/types";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogActions from "@mui/material/DialogActions";
 import { IconData } from "@/app/sampleData/iconData";
+import InputCompleteDialog from "@/app/components/InputCompleteDialog";
 
 export default function EditAccount() {
   const router = useRouter();
@@ -60,6 +58,13 @@ export default function EditAccount() {
           message: "半角英数字と大文字のアルファベットを使用してください",
         },
       },
+      type: "password",
+    },
+    {
+      label: "パスワード（確認）",
+      name: "passwordConfirmation",
+      value: "",
+      validationRule: {},
       type: "password",
     },
     {
@@ -143,24 +148,16 @@ export default function EditAccount() {
               }
             )
           }
-          bottonName="アカウント作成"
+          bottonName="編集"
         ></Form>
-        <Dialog open={isDialogOpen}>
-          <DialogTitle>
-            <p>アカウントを編集できました！</p>
-          </DialogTitle>
-          <DialogActions>
-            <button
-              onClick={() => {
-                sessionStorage.setItem("navigation", "home");
-                router.push("/home");
-              }}
-              className="text-3xl text-blue-500 w-20"
-            >
-              OK
-            </button>
-          </DialogActions>
-        </Dialog>
+        <InputCompleteDialog
+          isDialogOpen={isDialogOpen}
+          dialogMessage={"アカウントを編集できました"}
+          onClick={() => {
+            sessionStorage.setItem("navigation", "home");
+            router.push("/home");
+          }}
+        />
       </BackgroundColor>
     </>
   );

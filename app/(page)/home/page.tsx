@@ -172,7 +172,7 @@ export default function Home() {
     const total = expenses
       .filter((e) => e.date === dayStr)
       .reduce((sum, e) => sum + e.amount, 0);
-    return total > 0 ? `¥${total}` : null;
+    return total > 0 ? `¥${formatNumber(total)}` : null;
   };
 
   //トップ画面に表示させるを取得する処理
@@ -243,7 +243,7 @@ export default function Home() {
                     width={60}
                   />
                 )}
-                <div className="max-w-30 text-center font-bold">{userName}</div>
+                <div className="mt-2 max-w-40 font-bold">{userName}</div>
               </div>
               <button
                 className="mr-10 max-w-20 font-bold hover:shadow-2xl rounded-2xl"
@@ -260,13 +260,13 @@ export default function Home() {
                   />
                 )}
                 <div
-                  className={`mt-[-10px] max-w-20 text-2xl font-bold ${
-                    rank.name == "Bronze" && "text-[#9A6229]"
+                  className={`mt-[-10px] max-w-20 font-bold ${
+                    rank.name == "Bronze" && "text-[20px] text-[#9A6229]"
                   } ${rank.name == "Silver" && "text-[#C0C0C0]"} ${
-                    rank.name == "Gold" && "text-[#D3AF37]"
+                    rank.name == "Gold" && "text-[25px] text-[#D3AF37]"
                   } ${
                     rank.name == "Platinum" &&
-                    "text-[17px] font-extrabold bg-gradient-to-r from-gray-600 via-gray-400 to-gray-700 bg-clip-text text-transparent"
+                    "text-[15.5px] font-extrabold bg-gradient-to-r from-gray-600 via-gray-400 to-gray-700 bg-clip-text text-transparent"
                   } ${
                     rank.name == "Master" &&
                     "pt-3 text-[20px] font-extrabold bg-gradient-to-r from-blue-400 via-blue-300 to-blue-600 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(200,230,255,0.9)]"
@@ -278,8 +278,8 @@ export default function Home() {
             </div>
 
             <dl
-              className={`mt-8 mx-auto border-1 border-black rounded-[5px] w-[80vw] ${
-                budgetDeviation > 0 ? "bg-[#FFD783]" : "bg-[#75A9F9]"
+              className={`relative mt-8 mx-auto border-1 border-black rounded-[5px] w-[80vw] ${
+                budgetDeviation > 0 ? "bg-[#FFD783]" : "bg-[#aecefd]"
               }`}
             >
               <dt className="text-[14px]">今月の予算</dt>
@@ -292,7 +292,24 @@ export default function Home() {
                   予算が設定されていません
                 </dd>
               )}
-              <dt className="text-[14px]">今月の支出</dt>
+              {budgetDeviation > 0 ? (
+                <Image
+                  src="/moneyFueruYen.png"
+                  alt="お金が増えるイラスト"
+                  width={100}
+                  height={100}
+                  className="absolute right-3 bottom-8"
+                />
+              ) : (
+                <Image
+                  src="/moneyTokeruYen.png"
+                  alt="お金が溶けるイラスト"
+                  width={100}
+                  height={100}
+                  className="absolute right-3 bottom-8"
+                />
+              )}
+              <dt className="text-[14px] mt-3">今月の支出</dt>
               <dd className="flex flex-row">
                 {formatNumber(Number(thisMonthRecordSum)) !== "0" ? (
                   <div>
@@ -300,11 +317,11 @@ export default function Home() {
                       ￥{formatNumber(Number(thisMonthRecordSum))}
                     </div>
                     {budgetDeviation > 0 ? (
-                      <div className="flex items-end ml-15">
+                      <div className="absolute bottom-1 right-3">
                         {budgetDeviation}％節約中！
                       </div>
                     ) : (
-                      <div className="flex items-end ml-15">
+                      <div className="absolute bottom-1 right-3">
                         {Math.abs(budgetDeviation)}％の浪費...
                       </div>
                     )}
@@ -319,7 +336,7 @@ export default function Home() {
             <div className="mt-8 justify-items-center">
               <div>
                 <h1 className="font-serif w-[80vw]">
-                  今年の出費
+                  今年の月ごとの支出合計
                   <hr className="border-black border-2 rounded-[5px] w-full" />
                 </h1>
               </div>
@@ -359,6 +376,9 @@ export default function Home() {
                             }, 0)
                           ) + 10,
                         ]}
+                        tickFormatter={
+                          (value) => value.toLocaleString() // ← 3桁区切り（123,456）
+                        }
                       />
                       <ChartTooltip
                         cursor={false}
@@ -400,12 +420,12 @@ export default function Home() {
                 </h1>
               </div>
               <Tabs defaultValue="thisMonthExpend" className="mt-3">
-                <TabsList className="w-[80vw] mx-auto">
+                <TabsList className="bg-gray-200 w-[80vw] mx-auto">
                   <TabsTrigger value="thisMonthExpend">
                     日ごとの支出
                   </TabsTrigger>
                   <TabsTrigger value="expendAverage">
-                    これまでの支出の平均
+                    記録開始以降の支出の平均
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="thisMonthExpend" className="max-w-[95vw]">
@@ -421,7 +441,10 @@ export default function Home() {
                     tileContent={({ date }) => (
                       <p
                         style={{
+                          position: "absolute",
+                          marginTop: date.getDate() % 2 == 0 ? "10px" : "",
                           fontSize: "12px",
+                          zIndex: "10px",
                           color:
                             formatDate(date) === formatDate(new Date())
                               ? "lightgreen"
@@ -431,6 +454,13 @@ export default function Home() {
                         {showDailyTotal(date)}
                       </p>
                     )}
+                    tileClassName={({ date, view }) => {
+                      if (view === "month") {
+                        if (date.getDay() === 6 && date === new Date())
+                          return "saturday";
+                      }
+                      return null;
+                    }}
                   />
                   <p>今日の日付: {formatDateToString(new Date())}</p>
                 </TabsContent>
@@ -470,7 +500,9 @@ export default function Home() {
                             {recordsAvg.category_name}
                           </TableCell>
                           <TableCell className="text-left">
-                            ￥{recordsAvg.avg.split(".")[0]}/日
+                            ￥
+                            {formatNumber(Number(recordsAvg.avg.split(".")[0]))}
+                            /日
                           </TableCell>
                         </TableRow>
                       ))}
@@ -506,7 +538,7 @@ const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
         </p>
         <ul>
           <li className="flex flex-row mb-3">
-            <div>Bronze：</div>
+            <div>Bronze&nbsp;&nbsp;&nbsp;&nbsp;：</div>
             <div>
               節約率1%未満
               <br />
@@ -514,11 +546,11 @@ const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
             </div>
           </li>
           <li className="flex flex-row mb-3">
-            <div>Silver：</div>
+            <div>Silver&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
             <div>節約率1%以上5%未満</div>
           </li>
           <li className="flex flex-row mb-3">
-            <div>Gold：</div>
+            <div>Gold&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
             <div>節約率5%以上10%未満</div>
           </li>
           <li className="flex flex-row mb-3">
@@ -526,7 +558,7 @@ const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
             <div className="text-[15px]">節約率10%以上20%未満</div>
           </li>
           <li className="flex flex-row">
-            <div>Master：</div>
+            <div>Master&nbsp;&nbsp;&nbsp;：</div>
             <div>節約率20%以上</div>
           </li>
         </ul>
@@ -536,7 +568,7 @@ const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
           onClick={() => {
             setIsDialogOpen(false);
           }}
-          className="text-3xl text-blue-500 w-20"
+          className="bg-gray-200 shadow-xl/20 text-3xl rounded-2xl text-blue-500 w-20"
         >
           OK
         </button>

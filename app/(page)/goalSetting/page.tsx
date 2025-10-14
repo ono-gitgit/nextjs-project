@@ -2,17 +2,36 @@
 
 import { BackgroundColor } from "@/app/components/BackgroundColor";
 import Form from "@/app/components/Form";
+import InputCompleteDialog from "@/app/components/InputCompleteDialog";
 import { GoalSettingFormValue } from "@/app/types/types";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 export default function GoalSetting() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [goal, setGoal] = useState<number>(0);
+
+  const fetchGoal = useCallback(async () => {
+    const data = await fetch(
+      `/api/goals?user_id=${sessionStorage.getItem(
+        "user_id"
+      )}&target_month=thisMonth`
+    );
+    const thisMonthGoal = await data.json();
+    setGoal(() => thisMonthGoal.this_month_goal);
+  }, []);
+
+  useEffect(() => {
+    fetchGoal();
+  }, [fetchGoal]);
 
   const formArray = [
     {
       label: "予算（数値のみ）",
       name: "goal",
-      value: "",
+      value: goal,
       validationRule: {
         required: "予算が入力されていません",
         maxLength: {
@@ -37,7 +56,7 @@ export default function GoalSetting() {
     const results = await data.json();
     if (results.result === "success") {
       sessionStorage.setItem("goal", String(formValues.goal));
-      alert("登録しました");
+      setIsDialogOpen(true);
     }
     setIsLoading(false);
   };
@@ -56,6 +75,14 @@ export default function GoalSetting() {
           }}
           bottonName="設定する"
         ></Form>
+        <InputCompleteDialog
+          isDialogOpen={isDialogOpen}
+          dialogMessage={"予算を設定できました"}
+          onClick={() => {
+            sessionStorage.setItem("navigation", "home");
+            router.push("/home");
+          }}
+        />
       </BackgroundColor>
     </>
   );

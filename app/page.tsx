@@ -88,7 +88,9 @@ export default function Login() {
       return;
     }
     console.log(userJson);
-    const lastMonthGoal = await fetch(`/api/goals?user_id=${userJson.id}`);
+    const lastMonthGoal = await fetch(
+      `/api/goals?user_id=${userJson.id}&target_month=lastMonth`
+    );
     const lastMonthGoalJson = await lastMonthGoal.json();
     if (userJson.is_deleted === false) {
       sessionStorage.setItem("navigation", "home");
@@ -115,8 +117,12 @@ export default function Login() {
         <Form
           icon="/companyLogo.png"
           iconDescription="当アプリのロゴ"
-          title="ログイン"
-          description="アプリを利用するにはサインインが必要です"
+          title={
+            <>
+              <span className="font-sans">家計簿アプリ</span>
+            </>
+          }
+          description="アプリを利用するにはログインが必要です"
           formArray={formArray}
           onSubmit={(formValues) =>
             onClick(formValues as { email_address: string; password: string })

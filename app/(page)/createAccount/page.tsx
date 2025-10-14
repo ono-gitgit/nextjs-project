@@ -23,8 +23,8 @@ export default function CreateAccount() {
       validationRule: {
         required: "名前は必須です",
         maxLength: {
-          value: 255,
-          message: "名前は２５５文字以内で入力して下さい",
+          value: 10,
+          message: "名前は１０文字以内で入力して下さい",
         },
         pattern: {
           value: /^\S(.*\S)?$/,
@@ -40,11 +40,11 @@ export default function CreateAccount() {
       validationRule: {
         required: "メールアドレスは必須です",
         pattern: {
-          value: /^\S+[^\s@]+@[^\s@]+\.[^\s@]+$/,
+          value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
           message: "メールアドレスを正しく入力してください",
         },
       },
-      type: "text",
+      type: "email",
     },
     {
       label: "パスワード",
