@@ -1,79 +1,54 @@
 "use client";
 import { BackgroundColor } from "@/app/components/BackgroundColor";
 import IconAndTitle from "@/app/components/IconAndTitle";
-import { formatDate, formatDateToString } from "@/app/lib/utils";
+import InputCompleteDialog from "@/app/components/InputCompleteDialog";
+import { formatDate, formatDateToString, formatNumber } from "@/app/lib/utils";
 import { RecordFromArray } from "@/app/types/types";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import { useCallback, useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useForm } from "react-hook-form";
 
-// const formArray = [
-//   {
-//     label: "食費",
-//     name: "1",
-//     value: "",
-//   },
-//   {
-//     label: "趣味",
-//     name: "2",
-//     value: "",
-//   },
-//   {
-//     label: "交通費",
-//     name: "3",
-//     value: "",
-//   },
-//   {
-//     label: "通信費",
-//     name: "4",
-//     value: "",
-//   },
-//   {
-//     label: "光熱費",
-//     name: "5",
-//     value: "",
-//   },
-//   {
-//     label: "住居費",
-//     name: "6",
-//     value: "",
-//   },
-//   {
-//     label: "衣服",
-//     name: "7",
-//     value: "",
-//   },
-//   {
-//     label: "医療費",
-//     name: "8",
-//     value: "",
-//   },
-//   {
-//     label: "その他",
-//     name: "9",
-//     value: "",
-//   },
-// ];
-// const defaultValues = formArray.reduce((acc, cur) => {
-//   acc[cur.name] = Number(cur.value);
-//   return acc;
-// }, {} as Record<string, number>);
 type DayCategoriesAmountData = {
   amount: number;
   category_id: number;
 };
+type Expense = {
+  date: string;
+  amount: number;
+};
 export default function Record() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isInputCompleteDialogOpen, setIsInputCompleteDialogOpen] =
+    useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [formArray, setFormArray] = useState<RecordFromArray[]>([]); //id:number, name:string
   const [defaultValues, setDefaultValues] = useState<Record<string, number>>(
     {}
   );
+
+  // ある日の支出合計（カテゴリ別）を取得
+  const getDailyTotal = async (user_id: number) => {
+    const res = await fetch(`/api/records?user_id=${user_id}&target=days`);
+    const records: Expense[] = await res.json();
+    const newExpenses = records.map((record) => {
+      return { date: record.date.split("T")[0], amount: record.amount };
+    });
+    setExpenses(() => newExpenses);
+  };
+
+  //ある月のある日の支出合計を表示
+  const showDailyTotal = (day: Date) => {
+    const dayStr = day.toISOString().split("T")[0];
+    const total = expenses
+      .filter((e) => e.date === dayStr)
+      .reduce((sum, e) => sum + e.amount, 0);
+    return total > 0 ? `¥${formatNumber(total)}` : null;
+  };
 
   const createFromArrayDefaultValues = useCallback(async () => {
     const data = await fetch("/api/categories");
@@ -108,6 +83,7 @@ export default function Record() {
 
   useEffect(() => {
     createFromArrayDefaultValues();
+    getDailyTotal(Number(sessionStorage.getItem("user_id")) as number);
   }, [createFromArrayDefaultValues]);
 
   const {
@@ -139,7 +115,8 @@ export default function Record() {
     });
     const json = await data.json();
     if (json.result === "success") {
-      alert("記録しました");
+      setIsDialogOpen(false);
+      setIsInputCompleteDialogOpen(true);
     }
     setIsLoading(false);
   };
@@ -154,12 +131,29 @@ export default function Record() {
             description="記録したい日付をタップしてください"
           />
           <div>
-            <Calendar onClickDay={handleDateClick} locale="ja-JP" />
+            <Calendar
+              onClickDay={handleDateClick}
+              locale="ja-JP"
+              tileContent={({ date }) => (
+                <p
+                  style={{
+                    position: "absolute",
+                    marginLeft: "5px",
+                    marginTop: date.getDate() % 2 == 0 ? "5px" : "",
+                    fontSize: "12px",
+                    zIndex: "10px",
+                    color: "green",
+                  }}
+                >
+                  {showDailyTotal(date)}
+                </p>
+              )}
+            />
 
             <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
-              <DialogTitle>
+              <h1 className="text-[20px] text-center font-bold">
                 {formatDateToString(new Date(selectedDate))}の支出入力
-              </DialogTitle>
+              </h1>
               <DialogContent>
                 <form
                   className="gap-4 flex-col max-w-70"
@@ -182,6 +176,7 @@ export default function Record() {
                             },
                           })}
                           type="number"
+                          min={0}
                           className="border-2 border-gray-500 bg-[#FAFAFA]"
                         />
                       </label>
@@ -201,6 +196,13 @@ export default function Record() {
             </Dialog>
           </div>
         </main>
+        <InputCompleteDialog
+          isDialogOpen={isInputCompleteDialogOpen}
+          dialogMessage={"記録しました"}
+          onClick={() => {
+            setIsInputCompleteDialogOpen(false);
+          }}
+        />
       </div>
     </BackgroundColor>
   );

@@ -25,8 +25,8 @@ export default function InquiryEdit() {
       validationRule: {
         required: "名前は必須です",
         maxLength: {
-          value: 255,
-          message: "名前は２５５文字以内で入力して下さい",
+          value: 15,
+          message: "名前は１５文字以内で入力して下さい",
         },
         pattern: {
           value: /^\S(.*\S)?$/,
@@ -55,7 +55,7 @@ export default function InquiryEdit() {
       validationRule: {
         required: "お問い合わせ内容は必須です",
         maxLength: {
-          value: 255,
+          value: 500,
           message: "お問い合わせ内容は５００文字以内で入力して下さい",
         },
         pattern: {
@@ -158,13 +158,11 @@ export default function InquiryEdit() {
                   <span className="max-w-[200px] font-bold whitespace-pre-line">
                     名前
                   </span>
-                  <p className="w-[240px] text-[25px]">{enteredInquiry.name}</p>
+                  <p className="w-[240px]">{enteredInquiry.name}</p>
                   <span className="mt-6 max-w-[200px] font-bold whitespace-pre-line">
                     メールアドレス
                   </span>
-                  <p className="w-[240px] text-[25px]">
-                    {enteredInquiry.email_address}
-                  </p>
+                  <p className="w-[240px]">{enteredInquiry.email_address}</p>
                   <span className="mt-6 font-bold whitespace-pre-line">
                     お問い合わせ内容
                   </span>
