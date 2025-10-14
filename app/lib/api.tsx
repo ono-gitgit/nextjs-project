@@ -120,6 +120,18 @@ export async function updateUserRankId(id: number, rank_id: number) {
 }
 
 //先月の予算の取得
+export async function fetchThisMonthGoal(user_id: number) {
+  try {
+    const data =
+      await sql`SELECT this_month_goal FROM goals WHERE user_id = ${user_id}`;
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch this month goal data.");
+  }
+}
+
+//先月の予算の取得
 export async function fetchLastMonthGoal(user_id: number) {
   try {
     const data =
