@@ -1,9 +1,10 @@
 import Image from "next/image";
+import { ReactNode } from "react";
 
 type Prop = {
   icon?: string;
   iconDescription?: string;
-  title: string;
+  title: string | ReactNode;
   description?: string;
 };
 export default function IconAndTitle({
@@ -16,7 +17,7 @@ export default function IconAndTitle({
     <>
       {icon && iconDescription && (
         <Image
-          className="mt-[20px] mb-[-30px] mx-auto w-auto"
+          className="mt-[20px] mb-[-30px] mx-auto h-[112px] w-auto"
           src={icon}
           alt={iconDescription}
           width={100}

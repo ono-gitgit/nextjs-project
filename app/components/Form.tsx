@@ -1,9 +1,11 @@
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import IconAndTitle from "./IconAndTitle";
 import { FormArray } from "@/app/types/types";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 
 type formValues = {
   [key: string]: string | number;
@@ -11,7 +13,7 @@ type formValues = {
 type Props = {
   icon?: string;
   iconDescription?: string;
-  title: string;
+  title: string | ReactNode;
   description?: string;
   yenMark?: string;
   formArray: FormArray[];
@@ -32,6 +34,11 @@ export default function Form({
   children,
 }: Props) {
   const router = useRouter();
+  const [fieldType, setFeildType] = useState(
+    formArray.map((feiled) => {
+      return feiled.type;
+    })
+  );
   const defaultValues = formArray.reduce((acc, cur) => {
     acc[cur.name] = cur.value;
     return acc;
@@ -41,6 +48,7 @@ export default function Form({
     register,
     getValues,
     reset,
+    watch,
     formState: { errors },
     handleSubmit,
   } = useForm({ defaultValues });
@@ -66,7 +74,7 @@ export default function Form({
         >
           {formArray.map((field, index) => (
             <div key={index} className="mb-8 flex flex-col">
-              <span className="text-[#F85F6A] max-w-[200px] whitespace-pre-line">
+              <span className="max-w-[273px] whitespace-pre-line">
                 {field.label}
               </span>
               {field.radioOptions !== undefined ? (
@@ -92,17 +100,59 @@ export default function Form({
                 <label>
                   <textarea
                     {...register(field.name, field.validationRule)}
-                    className="border-2 w-[240px] border-gray-500 bg-[#FAFAFA]"
+                    className="border-2 w-[273px] border-gray-500 bg-[#FAFAFA]"
                   />
                 </label>
               ) : (
-                <label>
+                <label className="relative">
                   <span className="text-2xl">{yenMark}</span>
                   <input
-                    {...register(field.name, field.validationRule)}
-                    type={field.type}
-                    className="border-2 w-[240px] border-gray-500 bg-[#FAFAFA]"
+                    {...register(
+                      field.name,
+                      field.name !== "passwordConfirmation"
+                        ? field.validationRule
+                        : {
+                            required: "パスワードは必須です",
+                            maxLength: {
+                              value: 20,
+                              message:
+                                "パスワードは２０文字以内で入力してください",
+                            },
+                            pattern: {
+                              value: /^(?=.*[A-Z])(?=.*[a-z0-9])[A-Za-z0-9]+$/,
+                              message:
+                                "半角英数字と大文字のアルファベットを使用してください",
+                            },
+                            validate: (value: string) =>
+                              value === watch("password") ||
+                              "パスワードが一致しません",
+                          }
+                    )}
+                    type={fieldType[index]}
+                    className={`border-2 h-[33px] border-gray-500 bg-[#FAFAFA] ${
+                      yenMark ? "w-[245px]" : "w-[273px]"
+                    }`}
                   />
+                  {fieldType[index] === "password" && (
+                    <VisibilityOffOutlinedIcon
+                      onClick={() => {
+                        const newFieldType = { ...fieldType };
+                        newFieldType[index] = "text";
+                        setFeildType(newFieldType);
+                      }}
+                      className="absolute bg-white z-10 top-2 right-4"
+                    />
+                  )}
+                  {fieldType[index] === "text" && field.type === "password" && (
+                    <VisibilityOutlinedIcon
+                      onClick={() => {
+                        const newFieldType = { ...fieldType };
+                        newFieldType[index] = "password";
+                        setFeildType(newFieldType);
+                      }}
+                      className="absolute bg-white z-10 top-2 right-4"
+                    />
+                  )}
                 </label>
               )}
               <div className="text-red-500 text-[14px] max-w-[280px]">

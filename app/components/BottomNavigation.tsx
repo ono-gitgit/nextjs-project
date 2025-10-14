@@ -20,7 +20,7 @@ export const BottomNavigation = () => {
   return (
     <>
       {navigation !== null && (
-        <ul className="flex flex-row bg-[#FAFAFA] justify-center items-center fixed bottom-0 w-screen h-12 z-10">
+        <ul className="flex flex-row bg-gray-200 justify-center items-center fixed bottom-0 w-screen h-[73px] z-10">
           <li>
             <button
               onClick={() => {
