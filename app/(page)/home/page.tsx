@@ -3,14 +3,6 @@ import { BackgroundColor } from "@/app/components/BackgroundColor";
 import Image from "next/image";
 import React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { CardContent } from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 import {
   Table,
   TableBody,
@@ -37,15 +29,26 @@ import WalletIcon from "@mui/icons-material/Wallet";
 import { formatDate, formatDateToString, formatNumber } from "@/app/lib/utils";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import ExplainDialog from "@/app/components/ExplainDialog";
+import BudgetBar from "@/app/components/BudgetBar";
+import { ExpensesChart } from "@/app/components/ExpensesChart";
 
 type CharData = {
   month: string;
   amount_sum: number;
 };
-type ThisYearExpensesJson = {
+type AYearExpensesJson = {
   year: string;
   month: string;
   amount_sum: number;
+};
+// type DayCategoriesAmountData = {
+//   amount: number;
+//   category_id: number;
+// };
+type CategoryExpenses = {
+  amount: string;
+  name: string;
 };
 type RecordAvg = {
   category_id: number;
@@ -60,6 +63,7 @@ type Expense = {
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isExplainDialogOpen, setIsExplainDialogOpen] = useState(false);
   const [userId, setUserId] = useState<number>(0);
   const [userName, setUserName] = useState<string | null>(null);
   const [iconId, setIconId] = useState<number | null>(null);
@@ -89,6 +93,11 @@ export default function Home() {
     { month: "12月", amount_sum: 0 },
   ]);
   const [recordsAvgList, setRecordAvgList] = useState<RecordAvg[]>([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [categoryExpenses, setCategoryExpenses] = useState<CategoryExpenses[]>(
+    []
+  );
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   //ユーザーアイコンの取得
@@ -124,16 +133,29 @@ export default function Home() {
   //目標と支出との乖離率を取得
   const calculateBudgetDeviation = useCallback(async () => {
     if (goal !== "null" && thisMonthRecordSum !== 0 && thisMonthRecordSum) {
-      const tentativeBudgetDeviation =
-        ((Number(goal) - thisMonthRecordSum) / Number(goal)) * 100;
+      const tentativeBudgetDeviation = Number(goal) - thisMonthRecordSum;
       setBudgetDeviation(() => Math.floor(tentativeBudgetDeviation));
     }
   }, [goal, thisMonthRecordSum]);
 
   //今年の出費（グラフのデータ）を取得
   const fetchThisYearExpenses = async (user_id: number) => {
+    setChartData([
+      { month: "1月", amount_sum: 0 },
+      { month: "2月", amount_sum: 0 },
+      { month: "3月", amount_sum: 0 },
+      { month: "4月", amount_sum: 0 },
+      { month: "5月", amount_sum: 0 },
+      { month: "6月", amount_sum: 0 },
+      { month: "7月", amount_sum: 0 },
+      { month: "8月", amount_sum: 0 },
+      { month: "9月", amount_sum: 0 },
+      { month: "10月", amount_sum: 0 },
+      { month: "11月", amount_sum: 0 },
+      { month: "12月", amount_sum: 0 },
+    ]);
     const res = await fetch(`/api/records?user_id=${user_id}&target=thisYear`);
-    const json: ThisYearExpensesJson[] = await res.json();
+    const json: AYearExpensesJson[] = await res.json();
     console.log("今年の出費");
     console.log(json);
     if (json.length <= 0) return;
@@ -145,6 +167,63 @@ export default function Home() {
         return newJson ? { ...data, amount_sum: newJson.amount_sum } : data;
       });
     });
+  };
+
+  //今年の出費（グラフのデータ）を取得
+  const fetchLastYearExpenses = async (user_id: number) => {
+    setChartData([
+      { month: "1月", amount_sum: 0 },
+      { month: "2月", amount_sum: 0 },
+      { month: "3月", amount_sum: 0 },
+      { month: "4月", amount_sum: 0 },
+      { month: "5月", amount_sum: 0 },
+      { month: "6月", amount_sum: 0 },
+      { month: "7月", amount_sum: 0 },
+      { month: "8月", amount_sum: 0 },
+      { month: "9月", amount_sum: 0 },
+      { month: "10月", amount_sum: 0 },
+      { month: "11月", amount_sum: 0 },
+      { month: "12月", amount_sum: 0 },
+    ]);
+    const res = await fetch(`/api/records?user_id=${user_id}&target=lastYear`);
+    const json: AYearExpensesJson[] = await res.json();
+    console.log("去年の出費");
+    console.log(json);
+    if (json.length <= 0) return;
+    setChartData((prev) => {
+      return prev.map((data) => {
+        const newJson = json.find(
+          (gottenData) => gottenData.month === data.month
+        );
+        return newJson ? { ...data, amount_sum: newJson.amount_sum } : data;
+      });
+    });
+  };
+
+  const fetchCategoryExpenses = async (date: string) => {
+    setIsLoading(true);
+    const amountData = await fetch(
+      `/api/records?user_id=${sessionStorage.getItem(
+        "user_id"
+      )}&target=dayCategoriesRecordForTop&date=${date}'`
+    );
+    const amountDataJson: CategoryExpenses[] = await amountData.json();
+    const others = amountDataJson.find((data) => data.name === "その他");
+    const otherThanOthers = amountDataJson.filter(
+      (data) => data.name !== "その他"
+    );
+    const newamountData: CategoryExpenses[] = others
+      ? [...otherThanOthers, others]
+      : otherThanOthers;
+    console.log(newamountData);
+    setCategoryExpenses(newamountData);
+    setIsLoading(false);
+  };
+
+  const handleDateClick = async (date: Date) => {
+    setSelectedDate(date);
+    await fetchCategoryExpenses(formatDate(date));
+    setIsCategoryDialogOpen(true);
   };
 
   //これまでの支出の平均（カテゴリ別）を取得
@@ -194,13 +273,6 @@ export default function Home() {
     rankId,
     userId,
   ]);
-
-  const chartConfig = {
-    amount_sum: {
-      label: "Desktop",
-      color: "var(--chart-1)",
-    },
-  } satisfies ChartConfig;
 
   //セッションスコープの情報を取得する処理
   useEffect(() => {
@@ -278,7 +350,7 @@ export default function Home() {
             </div>
 
             <dl
-              className={`relative mt-8 mx-auto border-1 border-black rounded-[5px] w-[80vw] ${
+              className={`relative p-3 mt-8 mx-auto border-1 border-black rounded-[5px] w-[80vw] ${
                 budgetDeviation > 0 ? "bg-[#FFD783]" : "bg-[#aecefd]"
               }`}
             >
@@ -292,21 +364,10 @@ export default function Home() {
                   予算が設定されていません
                 </dd>
               )}
-              {budgetDeviation > 0 ? (
-                <Image
-                  src="/moneyFueruYen.png"
-                  alt="お金が増えるイラスト"
-                  width={100}
-                  height={100}
-                  className="absolute right-3 bottom-8"
-                />
-              ) : (
-                <Image
-                  src="/moneyTokeruYen.png"
-                  alt="お金が溶けるイラスト"
-                  width={100}
-                  height={100}
-                  className="absolute right-3 bottom-8"
+              {goal !== "null" && goal && (
+                <BudgetBar
+                  budget={Number(goal)}
+                  expenditure={Number(thisMonthRecordSum)}
                 />
               )}
               <dt className="text-[14px] mt-3">今月の支出</dt>
@@ -318,11 +379,11 @@ export default function Home() {
                     </div>
                     {budgetDeviation > 0 ? (
                       <div className="absolute bottom-1 right-3">
-                        {budgetDeviation}％節約中！
+                        残り予算{formatNumber(budgetDeviation)}円！
                       </div>
                     ) : (
                       <div className="absolute bottom-1 right-3">
-                        {Math.abs(budgetDeviation)}％の浪費...
+                        {formatNumber(Math.abs(budgetDeviation))}円の浪費...
                       </div>
                     )}
                   </div>
@@ -333,83 +394,41 @@ export default function Home() {
             </dl>
 
             {/* グラフ（ここから） */}
-            <div className="mt-8 justify-items-center">
-              <div>
-                <h1 className="font-serif w-[80vw]">
-                  今年の月ごとの支出合計
-                  <hr className="border-black border-2 rounded-[5px] w-full" />
-                </h1>
-              </div>
-              {chartData.length > 0 ? (
-                <CardContent className="mt-3">
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[200px] w-[80vw] mr-3"
-                  >
-                    <LineChart
-                      accessibilityLayer
-                      data={chartData}
-                      margin={{
-                        top: 10,
-                        right: 12,
-                      }}
-                    >
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={true}
-                        tickMargin={8}
-                        tickFormatter={(value) => value.slice(0, 3)}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={true}
-                        domain={[
-                          0,
-                          Number(
-                            chartData.reduce((acc, pre) => {
-                              if (Number(pre.amount_sum) >= Number(acc)) {
-                                return pre.amount_sum;
-                              }
-                              return acc;
-                            }, 0)
-                          ) + 10,
-                        ]}
-                        tickFormatter={
-                          (value) => value.toLocaleString() // ← 3桁区切り（123,456）
-                        }
-                      />
-                      <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent hideLabel />}
-                      />
-                      <Line
-                        dataKey="amount_sum"
-                        type="linear"
-                        stroke="#00441b"
-                        strokeWidth={2}
-                        dot={{
-                          fill: "color(--chart-1)",
-                        }}
-                      />
-                    </LineChart>
-                  </ChartContainer>
-                </CardContent>
-              ) : (
-                <p>
-                  <Image
-                    className="mt-[10px] mb-[0px] mx-auto w-auto"
-                    src="/rabbitAndFrog.png"
-                    alt="ウサギとカエルのイラスト"
-                    width={100}
-                    height={30}
-                    priority
-                  />
-                  記録がありません
-                </p>
-              )}
-            </div>
+            <Tabs
+              defaultValue="thisYearExpenses"
+              className="mt-8 justify-items-center"
+            >
+              <TabsList className="bg-gray-200 w-[85vw] mx-auto">
+                <TabsTrigger
+                  value="thisYearExpenses"
+                  onClick={() => {
+                    fetchThisYearExpenses(userId);
+                  }}
+                >
+                  今年の月ごとの支出
+                </TabsTrigger>
+                <TabsTrigger
+                  value="lastYearExpenses"
+                  onClick={() => {
+                    fetchLastYearExpenses(userId);
+                  }}
+                >
+                  去年の月ごとの支出
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent
+                value="thisYearExpenses"
+                className="justify-items-center"
+              >
+                <ExpensesChart chartData={chartData} />
+              </TabsContent>
+              <TabsContent
+                value="lastYearExpenses"
+                className="justify-items-center"
+              >
+                <ExpensesChart chartData={chartData} />
+              </TabsContent>
+            </Tabs>
             {/* グラフ（ここまで） */}
 
             <div className="mt-8 justify-items-center">
@@ -430,7 +449,9 @@ export default function Home() {
                 </TabsList>
                 <TabsContent value="thisMonthExpend" className="max-w-[95vw]">
                   <Calendar
-                    onChange={() => {}}
+                    onChange={(date) => {
+                      handleDateClick(new Date(String(date)));
+                    }}
                     value={new Date()}
                     minDetail="month"
                     // prevLabel={null}
@@ -442,7 +463,7 @@ export default function Home() {
                       <p
                         style={{
                           position: "absolute",
-                          marginTop: date.getDate() % 2 == 0 ? "10px" : "",
+                          marginTop: date.getDate() % 2 == 0 ? "7px" : "",
                           fontSize: "12px",
                           zIndex: "10px",
                           color:
@@ -463,49 +484,103 @@ export default function Home() {
                     }}
                   />
                   <p>今日の日付: {formatDateToString(new Date())}</p>
+                  <Dialog
+                    open={isCategoryDialogOpen}
+                    onClose={() => setIsCategoryDialogOpen(false)}
+                  >
+                    <h1 className="p-5 pb-0 text-[20px] text-center font-bold">
+                      {formatDateToString(new Date(selectedDate))}の支出入力
+                    </h1>
+                    <DialogContent className="relative">
+                      {categoryExpenses.length !== 0 ? (
+                        categoryExpenses.map((field, index) => (
+                          <div key={index} className="mb-5 flex flex-col">
+                            <h2 className="max-w-[200px] whitespace-pre-line font-bold text-[18px]">
+                              {field.name}
+                            </h2>
+                            <p>{formatNumber(Number(field.amount))}円</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="pb-12 text-2xl">記録がありません</p>
+                      )}
+                      <button
+                        type="submit"
+                        className="absolute bottom-2 right-3 bg-gray-200 shadow-xl/20 text-3xl rounded-2xl text-blue-500 w-20"
+                        onClick={() => {
+                          setIsCategoryDialogOpen(false);
+                        }}
+                      >
+                        閉じる
+                      </button>
+                    </DialogContent>
+                  </Dialog>
                 </TabsContent>
                 <TabsContent value="expendAverage">
                   <Table className="bg-gray-200">
                     <TableBody>
-                      {recordsAvgList.map((recordsAvg, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium flex items-center">
-                            {recordsAvg.category_name === "食費" && (
-                              <RestaurantOutlinedIcon className="text-[#FF6624]" />
-                            )}
-                            {recordsAvg.category_name === "趣味" && (
-                              <HotelClassIcon className="text-[#C3BB38]" />
-                            )}
-                            {recordsAvg.category_name === "交通費" && (
-                              <CommuteIcon className="text-[#4C7A34]" />
-                            )}
-                            {recordsAvg.category_name === "通信費" && (
-                              <RssFeedIcon className="text-gray-600" />
-                            )}
-                            {recordsAvg.category_name === "光熱費" && (
-                              <GasMeterIcon className="text-[#1464F6]" />
-                            )}
-                            {recordsAvg.category_name === "住居費" && (
-                              <MapsHomeWorkIcon className="text-[#FFA834]" />
-                            )}
-                            {recordsAvg.category_name === "医療費" && (
-                              <MedicalServicesIcon className="text-[#FF3823]" />
-                            )}
-                            {recordsAvg.category_name === "書籍" && (
-                              <MedicalServicesIcon className="text-[#1B7837]" />
-                            )}
-                            {recordsAvg.category_name === "その他" && (
-                              <WalletIcon />
-                            )}
-                            {recordsAvg.category_name}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            ￥
-                            {formatNumber(Number(recordsAvg.avg.split(".")[0]))}
-                            /日
+                      {recordsAvgList.length > 0 ? (
+                        recordsAvgList.map((recordsAvg, index) => (
+                          <TableRow
+                            key={index}
+                            onClick={() => {
+                              setIsExplainDialogOpen(true);
+                            }}
+                          >
+                            <TableCell className="font-medium flex items-center">
+                              {recordsAvg.category_name === "食費" && (
+                                <RestaurantOutlinedIcon className="text-[#FF6624]" />
+                              )}
+                              {recordsAvg.category_name === "趣味" && (
+                                <HotelClassIcon className="text-[#C3BB38]" />
+                              )}
+                              {recordsAvg.category_name === "交通費" && (
+                                <CommuteIcon className="text-[#4C7A34]" />
+                              )}
+                              {recordsAvg.category_name === "通信費" && (
+                                <RssFeedIcon className="text-gray-600" />
+                              )}
+                              {recordsAvg.category_name === "光熱費" && (
+                                <GasMeterIcon className="text-[#1464F6]" />
+                              )}
+                              {recordsAvg.category_name === "住居費" && (
+                                <MapsHomeWorkIcon className="text-[#FFA834]" />
+                              )}
+                              {recordsAvg.category_name === "医療費" && (
+                                <MedicalServicesIcon className="text-[#FF3823]" />
+                              )}
+                              {recordsAvg.category_name === "書籍" && (
+                                <MedicalServicesIcon className="text-[#1B7837]" />
+                              )}
+                              {recordsAvg.category_name === "その他" && (
+                                <WalletIcon />
+                              )}
+                              {recordsAvg.category_name}
+                            </TableCell>
+                            <TableCell className="text-left">
+                              ￥
+                              {formatNumber(
+                                Number(recordsAvg.avg.split(".")[0])
+                              )}
+                              /日
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell className="text-center">
+                            <Image
+                              className="mt-[10px] mb-[0px] mx-auto w-auto"
+                              src="/rabbitAndFrog.png"
+                              alt="ウサギとカエルのイラスト"
+                              width={100}
+                              height={30}
+                              priority
+                            />
+                            記録がありません
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )}
                     </TableBody>
                   </Table>
                 </TabsContent>
@@ -513,6 +588,14 @@ export default function Home() {
             </div>
           </BackgroundColor>
           <AboutRank isOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} />
+          <ExplainDialog
+            isDialogOpen={isExplainDialogOpen}
+            title={""}
+            explain={"支出の記録をつけた日が計算対象となっています"}
+            onClick={() => {
+              setIsExplainDialogOpen(false);
+            }}
+          />
         </div>
       ) : (
         <BackgroundColor isLoading={false}>
@@ -533,33 +616,33 @@ const AboutRank: React.FC<Prop> = ({ isOpen, setIsDialogOpen }) => {
       <DialogTitle>ランクとは？</DialogTitle>
       <DialogContent>
         <p className="mb-5">
-          先月の予算に対する節約率（「先月の予算」 - 「先月の出費」 ÷
+          先月の予算に対する節約率（（「先月の予算」 - 「先月の出費」） ÷
           「先月の予算」 × 100）によってランクが変動します
         </p>
         <ul>
           <li className="flex flex-row mb-3">
             <div>Bronze&nbsp;&nbsp;&nbsp;&nbsp;：</div>
             <div>
-              節約率1%未満
+              節約率5%未満
               <br />
               （または記録なし）
             </div>
           </li>
           <li className="flex flex-row mb-3">
             <div>Silver&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
-            <div>節約率1%以上5%未満</div>
-          </li>
-          <li className="flex flex-row mb-3">
-            <div>Gold&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
             <div>節約率5%以上10%未満</div>
           </li>
           <li className="flex flex-row mb-3">
+            <div>Gold&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+            <div>節約率10%以上20%未満</div>
+          </li>
+          <li className="flex flex-row mb-3">
             <div>Platinum：</div>
-            <div className="text-[15px]">節約率10%以上20%未満</div>
+            <div className="text-[15px]">節約率20%以上30%未満</div>
           </li>
           <li className="flex flex-row">
             <div>Master&nbsp;&nbsp;&nbsp;：</div>
-            <div>節約率20%以上</div>
+            <div>節約率30%以上</div>
           </li>
         </ul>
       </DialogContent>

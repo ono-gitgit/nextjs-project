@@ -1,7 +1,9 @@
 import {
   fetchDayCategoriesRecord,
+  fetchDayCategoriesRecordForTop,
   fetchDayRecordSum,
   fetchLastMonthRecordSum,
+  fetchLastYearExpenses,
   fetchRecordAverage,
   fetchThisMonthRecordSum,
   fetchThisYearExpenses,
@@ -26,11 +28,23 @@ export async function GET(req: NextRequest) {
         user_id
       );
       return NextResponse.json(data);
+    } else if (target == "lastYear") {
+      const data = await fetchLastYearExpenses(
+        (new Date().getFullYear() - 1).toString(),
+        user_id
+      );
+      return NextResponse.json(data);
     } else if (target == "average") {
       const data = await fetchRecordAverage(user_id);
       return NextResponse.json(data);
     } else if (target == "days") {
       const data = await fetchDayRecordSum(user_id);
+      return NextResponse.json(data);
+    } else if (target == "dayCategoriesRecordForTop") {
+      const data = await fetchDayCategoriesRecordForTop(
+        searchParams.get("date") as string,
+        user_id
+      );
       return NextResponse.json(data);
     } else if (target == "dayCategoriesRecord") {
       const data = await fetchDayCategoriesRecord(

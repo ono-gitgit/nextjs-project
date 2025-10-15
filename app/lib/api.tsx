@@ -250,6 +250,33 @@ export async function fetchThisYearExpenses(thisYear: string, user_id: number) {
   }
 }
 
+//去年の出費（グラフのデータ）の取得
+export async function fetchLastYearExpenses(lastYear: string, user_id: number) {
+  try {
+    const data = await sql`SELECT EXTRACT(YEAR FROM recorded_on) AS year,
+    CASE EXTRACT(MONTH FROM recorded_on)
+    WHEN 1 THEN '1月'
+    WHEN 2 THEN '2月'
+    WHEN 3 THEN '3月'
+    WHEN 4 THEN '4月'
+    WHEN 5 THEN '5月'
+    WHEN 6 THEN '6月'
+    WHEN 7 THEN '7月'
+    WHEN 8 THEN '8月'
+    WHEN 9 THEN '9月'
+    WHEN 10 THEN '10月'
+    WHEN 11 THEN '11月'
+    WHEN 12 THEN '12月'
+    END AS month, 
+    SUM(amount) AS amount_sum FROM expenses 
+    WHERE EXTRACT(YEAR FROM recorded_on) = ${lastYear} AND user_id = ${user_id} GROUP BY year, month ORDER BY month;`;
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch this yesr record data.");
+  }
+}
+
 //これまでの支出平均（カテゴリ別）
 export async function fetchRecordAverage(user_id: number) {
   try {
@@ -275,6 +302,22 @@ export async function fetchDayRecordSum(user_id: number) {
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch some day record data.");
+  }
+}
+
+//日ごとのカテゴリ別支出合計(ホーム画面用)
+export async function fetchDayCategoriesRecordForTop(
+  date: string,
+  user_id: number
+) {
+  try {
+    const data =
+      await sql`SELECT e.amount, c.name FROM expenses AS e LEFT OUTER JOIN categories AS c 
+      ON e.category_id = c.id WHERE recorded_on = ${date} AND user_id = ${user_id}`;
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch some day categories record data.");
   }
 }
 
