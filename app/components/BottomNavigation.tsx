@@ -7,6 +7,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { useEffect, useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
 
 export const BottomNavigation = () => {
   const [navigation, setNavigation] = useState<string | null>("");
@@ -94,47 +95,72 @@ type Prop = {
 };
 const ShowOthersDialog: React.FC<Prop> = ({ isOpen, handleClose }) => {
   const router = useRouter();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const className =
     "flex flex-col items-center justify-center hover:bg-gray-200 rounded-2xl w-[200px] h-10";
   return (
-    <Dialog open={isOpen} onClose={handleClose} className="">
-      <DialogContent>
-        <ul>
-          <li>
-            <button
-              onClick={() => {
-                router.push("/editAccount");
-                sessionStorage.setItem("navigation", "others");
-              }}
-              className={className}
-            >
-              アカウント編集
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => {
-                router.push("/inquiry");
-                sessionStorage.setItem("navigation", "others");
-              }}
-              className={className}
-            >
-              お問い合わせ
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => {
-                router.push("/");
-                sessionStorage.clear();
-              }}
-              className={`text-red-500 ${className}`}
-            >
-              ログアウト
-            </button>
-          </li>
-        </ul>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen} onClose={handleClose} className="">
+        <DialogContent>
+          <ul>
+            <li>
+              <button
+                onClick={() => {
+                  router.push("/editAccount");
+                  sessionStorage.setItem("navigation", "others");
+                }}
+                className={className}
+              >
+                アカウント編集
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => {
+                  router.push("/inquiry");
+                  sessionStorage.setItem("navigation", "others");
+                }}
+                className={className}
+              >
+                お問い合わせ
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => {
+                  setIsLogoutDialogOpen(true);
+                  handleClose();
+                }}
+                className={`text-red-500 ${className}`}
+              >
+                ログアウト
+              </button>
+            </li>
+          </ul>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isLogoutDialogOpen}>
+        <DialogContent className="text-2xl">ログアウトしますか？</DialogContent>
+        <DialogActions className="flex flex-row gap-2">
+          <button
+            onClick={() => {
+              router.push("/");
+              sessionStorage.clear();
+            }}
+            className="bg-red-400 shadow-xl/20 text-3xl rounded-2xl text-white w-20"
+          >
+            はい
+          </button>
+          <button
+            onClick={() => {
+              setIsLogoutDialogOpen(false);
+            }}
+            className="bg-gray-200 shadow-xl/20 text-3xl rounded-2xl text-blue-500 w-20"
+          >
+            いいえ
+          </button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };

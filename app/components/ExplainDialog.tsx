@@ -7,7 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 
 type Prop = {
   isDialogOpen: boolean;
-  title: string;
+  title?: string;
   explain: string;
   onClick: () => void;
 };
