@@ -16,10 +16,13 @@ type Props = {
   iconDescription?: string;
   title: string | ReactNode;
   description?: string;
-  yenMark?: string;
+  yenKanji?: string;
+  dayKanji?: string;
   formArray: FormArray[];
   onSubmit: (formValues: formValues) => void;
+  onClickBackBottonName?: () => void;
   bottonName: string;
+  backBottonName?: string;
   children?: React.ReactNode;
 };
 
@@ -28,10 +31,13 @@ export default function Form({
   iconDescription,
   title,
   description,
-  yenMark,
+  yenKanji,
+  dayKanji,
   formArray,
   onSubmit,
+  onClickBackBottonName,
   bottonName,
+  backBottonName,
   children,
 }: Props) {
   const router = useRouter();
@@ -109,7 +115,6 @@ export default function Form({
                 </label>
               ) : (
                 <label className="relative">
-                  <span className="text-2xl">{yenMark}</span>
                   <input
                     {...register(
                       field.name,
@@ -141,9 +146,14 @@ export default function Form({
                     maxLength={30}
                     placeholder={field.placeholder}
                     className={`border-2 h-[33px] border-gray-500 bg-[#FAFAFA] ${
-                      yenMark ? "w-[245px]" : "w-[273px]"
+                      yenKanji ? "w-[245px]" : "w-[273px]"
                     }`}
                   />
+                  {field.name.startsWith("dateFor") ? (
+                    <span className="ml-1 text-2xl">{dayKanji}</span>
+                  ) : (
+                    <span className="ml-1 text-2xl">{yenKanji}</span>
+                  )}
                   {fieldType[index] === "password" && (
                     <VisibilityOffOutlinedIcon
                       onClick={() => {
@@ -179,12 +189,25 @@ export default function Form({
               )}
             </div>
           ))}
-          <button
-            type="submit"
-            className="rounded-[10px] border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#F85F6A] hover:bg-[#f3a4a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full"
-          >
-            {bottonName}
-          </button>
+          <div className="flex flex-row">
+            {backBottonName && (
+              <button
+                type="button"
+                className="rounded-[10px] mx-auto border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#808080] hover:bg-[#a9a9a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-[130px]"
+                onClick={onClickBackBottonName}
+              >
+                {backBottonName}
+              </button>
+            )}
+            <button
+              type="submit"
+              className={`rounded-[10px] border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#F85F6A] hover:bg-[#f3a4a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 ${
+                backBottonName ? "w-[130px]" : "w-full"
+              }`}
+            >
+              {bottonName}
+            </button>
+          </div>
         </form>
         {children}
       </main>
