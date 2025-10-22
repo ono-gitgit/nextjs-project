@@ -98,6 +98,33 @@ export async function fetchUserIcon(icon_id: number) {
   }
 }
 
+//固定費を自動入力する日付を設定
+export async function updateFixedExpenses(
+  user_id: number,
+  sendedFixedExpensesList: []
+) {
+  try {
+    const existingData = await sql`SELECT * FROM fixed_expenses`;
+    for (const sendedFixedExpenses of sendedFixedExpensesList) {
+      const categoryId = Object.keys(sendedFixedExpenses[0])[0];
+      const amount = sendedFixedExpenses[0][categoryId];
+      const fixedExpensesDayKey = Object.keys(sendedFixedExpenses[1])[0];
+      const fixedExpensesDay = sendedFixedExpenses[1][fixedExpensesDayKey];
+      if (existingData.length === 0) {
+        await sql`INSERT INTO fixed_expenses(user_id, category_id, amount, fixed_expenses_day) 
+        VALUES(${user_id}, ${categoryId}, ${amount}, ${fixedExpensesDay})`;
+      } else {
+        await sql`UPDATE fixed_expenses 
+          SET amount = ${amount}, fixed_expenses_day = ${fixedExpensesDay}
+          WHERE user_id = ${user_id} AND category_id = ${categoryId}`;
+      }
+    }
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to insert fixed expenses day.");
+  }
+}
+
 //ランクデータの取得
 export async function fetchRank(id: number) {
   try {
@@ -159,7 +186,9 @@ export async function updateUserGoal(id: number, goal: number) {
 //カテゴリの取得
 export async function fetchCategories() {
   try {
-    const data = await sql`SELECT id, name FROM categories`;
+    const data =
+      await sql`SELECT c.id, c.name, e.category_name FROM categories AS c 
+      LEFT OUTER JOIN expense_categories AS e ON c.expense_category_id = e.id`;
     return data;
   } catch (error) {
     console.error("Database Error:", error);
