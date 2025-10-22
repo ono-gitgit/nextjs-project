@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
+import { useRouter } from "next/navigation";
 
 export default function FixedCostsSetting() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formArray, setFormArray] = useState<FormArray[]>([]);
@@ -41,7 +43,7 @@ export default function FixedCostsSetting() {
           <span>
             {data.name}を自動入力する日
             <br />
-            （月末に設定する場合は、「月末」と入力してください）
+            （月末に設定する場合は、「31」と入力してください）
           </span>
         ),
         name: `dateFor${data.id.toString()}`,
@@ -49,12 +51,11 @@ export default function FixedCostsSetting() {
         validationRule: {
           required: "この項目は必須です",
           pattern: {
-            value: /^((0[1-9]|[12][0-9]|30)日|月末)$/,
-            message: "日付を正しく入力してください",
+            value: /^([0-9]|[12][0-9]|3[01])$/,
+            message: "正しい日付を入力して下さい",
           },
         },
-        placeholder: " 例：〇〇日(〇〇は半角)",
-        type: "text",
+        type: "number",
       },
     ]);
     setFormArray(() => fixedExpensesFormArray);
@@ -62,7 +63,7 @@ export default function FixedCostsSetting() {
     setIsLoading(false);
   };
 
-  const onClick = async (fixedExpenses: Record<string, string | number>) => {
+  const onClick = async (fixedExpenses: Record<string, number>) => {
     setIsLoading(true);
     const sendedFixedExpensesList = [];
     const keyList = Object.keys(fixedExpenses);
@@ -110,10 +111,14 @@ export default function FixedCostsSetting() {
       <Form
         title="固定費の設定"
         formArray={formArray}
-        onSubmit={(formValues) =>
-          onClick(formValues as Record<string, string | number>)
-        }
+        yenKanji="円"
+        dayKanji="日"
+        onSubmit={(formValues) => onClick(formValues as Record<string, number>)}
+        onClickBackBottonName={() => {
+          router.push("/record");
+        }}
         bottonName="設定する"
+        backBottonName="戻る"
       ></Form>
       <Dialog open={isDialogOpen}>
         <DialogTitle>

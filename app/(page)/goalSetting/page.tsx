@@ -68,7 +68,7 @@ export default function GoalSetting() {
           iconDescription="スノーボードをしているウサギのイラスト"
           title="予算を設定する"
           description="今月の予算を入力してください"
-          yenMark="￥"
+          yenKanji="円"
           formArray={formArray}
           onSubmit={(formValues) => {
             onClick(formValues as GoalSettingFormValue);

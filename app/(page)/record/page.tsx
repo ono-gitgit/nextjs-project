@@ -16,6 +16,11 @@ type DayCategoriesAmountData = {
   amount: number;
   category_id: number;
 };
+type FixedExpensesJson = {
+  category_id: number;
+  amount: number;
+  fixed_expenses_day: number;
+};
 type Expense = {
   date: string;
   amount: number;
@@ -77,9 +82,29 @@ export default function Record() {
         "user_id"
       )}&target=dayCategoriesRecord&date=${date}'`
     );
+    const fixedExpenses = await fetch(
+      `/api/fixedExpenses?user_id=${sessionStorage.getItem("user_id")}`
+    );
     const amountDataJson: DayCategoriesAmountData[] = await amountData.json();
+    const fixedExpensesJson: FixedExpensesJson[] = await fixedExpenses.json();
+    console.log(fixedExpensesJson);
     for (const data of amountDataJson) {
       setValue(String(data.category_id), data.amount);
+    }
+    const clickedDate = new Date(date);
+    const clickedYear = clickedDate.getFullYear();
+    const clickedMonth = clickedDate.getMonth() + 1;
+    const clickedDay = clickedDate.getDate();
+    const clickedMaxDay = new Date(clickedYear, +clickedMonth, 0).getDate();
+    console.log(clickedMaxDay);
+    for (const data of fixedExpensesJson) {
+      if (
+        data.fixed_expenses_day == clickedDay ||
+        (clickedDay === clickedMaxDay &&
+          data.fixed_expenses_day >= clickedMaxDay)
+      ) {
+        setValue(String(data.category_id), data.amount);
+      }
     }
   };
 
@@ -97,10 +122,12 @@ export default function Record() {
     handleSubmit,
   } = useForm({ defaultValues });
 
-  const handleDateClick = (date: Date) => {
+  const handleDateClick = async (date: Date) => {
+    setIsLoading(true);
     setSelectedDate(date);
-    setNewDefaultValues(formatDate(date));
+    await setNewDefaultValues(formatDate(date));
     setIsDialogOpen(true);
+    setIsLoading(false);
   };
 
   const onClick = async (formValues: Record<string, number>) => {
@@ -171,42 +198,40 @@ export default function Record() {
           </button>
 
           <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
-            <h1 className="text-[20px] p-3 text-center font-bold">
+            <h1 className="text-[20px] p-3 mb-[-10px] text-center font-bold">
               {formatDateToString(new Date(selectedDate))}の支出入力
             </h1>
             <DialogContent>
               <form
-                className="gap-4 flex-col max-w-80"
+                className="flex-col max-w-80"
                 onSubmit={handleSubmit(() => {
                   onClick(getValues());
                 })}
               >
-                <div className="flex flex-row flex-wrap gap-4">
-                  {formArray.map((field, index) => (
-                    <div key={index} className="mb-8 flex flex-col">
-                      <span className="max-w-[200px] whitespace-pre-line">
-                        {field.name}
-                      </span>
-                      <label>
-                        <span className="text-2xl">￥</span>
-                        <input
-                          {...register(String(field.id), {
-                            maxLength: {
-                              value: 6,
-                              message: "入力できるのは６桁までです",
-                            },
-                          })}
-                          type="number"
-                          min={0}
-                          className="border-2 border-gray-500 bg-[#FAFAFA] w-[90px]"
-                        />
-                      </label>
-                      <div className="text-red-500 text-[14px] max-w-[280px]">
-                        {errors[field.id]?.message}
-                      </div>
+                {formArray.map((field, index) => (
+                  <div key={index} className="mb-2 flex flex-col">
+                    <span className="max-w-[200px] whitespace-pre-line">
+                      {field.name}
+                    </span>
+                    <label>
+                      <span className="text-2xl">￥</span>
+                      <input
+                        {...register(String(field.id), {
+                          maxLength: {
+                            value: 6,
+                            message: "入力できるのは６桁までです",
+                          },
+                        })}
+                        type="number"
+                        min={0}
+                        className="border-2 border-gray-500 bg-[#FAFAFA]"
+                      />
+                    </label>
+                    <div className="text-red-500 text-[14px] max-w-[280px]">
+                      {errors[field.id]?.message}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
                 <button
                   type="submit"
                   className="rounded-[10px] border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#F85F6A] hover:bg-[#f3a4a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full"
