@@ -98,6 +98,18 @@ export async function fetchUserIcon(icon_id: number) {
   }
 }
 
+//固定費の取得
+export async function fetchFixedExpenses(user_id: number) {
+  try {
+    const data =
+      await sql`SELECT category_id, amount, fixed_expenses_day FROM fixed_expenses WHERE user_id = ${user_id};`;
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch fixed expenses data.");
+  }
+}
+
 //固定費を自動入力する日付を設定
 export async function updateFixedExpenses(
   user_id: number,
@@ -377,7 +389,7 @@ export async function updateRecord(
       const id = categoryId.id;
       const amount = formValue[id];
       let isUpdate = false;
-      if (String(amount) !== "") {
+      if (String(amount) !== "" && amount !== 0) {
         for (const data of existingData) {
           if (data.category_id == id) {
             await sql`UPDATE expenses SET amount = ${amount} WHERE recorded_on = ${date} AND user_id = ${user_id} AND category_id = ${id};`;
