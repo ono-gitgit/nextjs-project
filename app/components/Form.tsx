@@ -87,6 +87,7 @@ export default function Form({
                         maxLength={30}
                         type={field.type}
                         value={choices.value}
+                        placeholder={field.placeholder}
                       />
                       <Image
                         className="h-auto w-auto rounded-[200px]"
@@ -131,9 +132,14 @@ export default function Form({
                               "パスワードが一致しません",
                           }
                     )}
-                    type={fieldType[index]}
+                    type={
+                      formArray.map((feiled) => {
+                        return feiled.type;
+                      })[index]
+                    }
                     min={0}
                     maxLength={30}
+                    placeholder={field.placeholder}
                     className={`border-2 h-[33px] border-gray-500 bg-[#FAFAFA] ${
                       yenMark ? "w-[245px]" : "w-[273px]"
                     }`}
