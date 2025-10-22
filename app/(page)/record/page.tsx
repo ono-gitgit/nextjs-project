@@ -6,6 +6,7 @@ import { formatDate, formatDateToString, formatNumber } from "@/app/lib/utils";
 import { RecordFromArray } from "@/app/types/types";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -20,13 +21,14 @@ type Expense = {
   amount: number;
 };
 export default function Record() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isInputCompleteDialogOpen, setIsInputCompleteDialogOpen] =
     useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [formArray, setFormArray] = useState<RecordFromArray[]>([]); //id:number, name:string
+  const [formArray, setFormArray] = useState<RecordFromArray[]>([]);
   const [defaultValues, setDefaultValues] = useState<Record<string, number>>(
     {}
   );
@@ -55,7 +57,7 @@ export default function Record() {
     const categories: RecordFromArray[] = await data.json();
     const others = categories.find(
       (category) => category.name === "その他"
-    ) ?? { id: 9999, name: "その他" };
+    ) ?? { id: 9999, name: "その他", expense_category_id: 1 };
     const noOthersCategories = categories.filter(
       (category) => category.name !== "その他"
     );
@@ -130,8 +132,13 @@ export default function Record() {
             title="支出を記録する"
             description="記録したい日付をタップしてください"
           />
-          <div>
+          <div className="ml-1 mx-auto w-[350px]">
             <Calendar
+              // prevLabel={null}
+              // nextLabel={null}
+              prev2Label={null}
+              next2Label={null}
+              // showNeighboringMonth={false}
               onClickDay={handleDateClick}
               locale="ja-JP"
               tileContent={({ date }) => (
@@ -148,19 +155,33 @@ export default function Record() {
                   {showDailyTotal(date)}
                 </p>
               )}
+              className="w-full"
             />
+          </div>
+          <button
+            className="text-blue-600 underline text-[15px] text-left"
+            onClick={() => {
+              setIsLoading(true);
+              router.push("/fixedCostsSetting");
+            }}
+          >
+            こちらのリンクをクリックすると、
+            <br />
+            指定した日付に固定費を自動入力する設定ができます
+          </button>
 
-            <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
-              <h1 className="text-[20px] text-center font-bold">
-                {formatDateToString(new Date(selectedDate))}の支出入力
-              </h1>
-              <DialogContent>
-                <form
-                  className="gap-4 flex-col max-w-70"
-                  onSubmit={handleSubmit(() => {
-                    onClick(getValues());
-                  })}
-                >
+          <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+            <h1 className="text-[20px] p-3 text-center font-bold">
+              {formatDateToString(new Date(selectedDate))}の支出入力
+            </h1>
+            <DialogContent>
+              <form
+                className="gap-4 flex-col max-w-80"
+                onSubmit={handleSubmit(() => {
+                  onClick(getValues());
+                })}
+              >
+                <div className="flex flex-row flex-wrap gap-4">
                   {formArray.map((field, index) => (
                     <div key={index} className="mb-8 flex flex-col">
                       <span className="max-w-[200px] whitespace-pre-line">
@@ -177,7 +198,7 @@ export default function Record() {
                           })}
                           type="number"
                           min={0}
-                          className="border-2 border-gray-500 bg-[#FAFAFA]"
+                          className="border-2 border-gray-500 bg-[#FAFAFA] w-[90px]"
                         />
                       </label>
                       <div className="text-red-500 text-[14px] max-w-[280px]">
@@ -185,16 +206,16 @@ export default function Record() {
                       </div>
                     </div>
                   ))}
-                  <button
-                    type="submit"
-                    className="rounded-[10px] border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#F85F6A] hover:bg-[#f3a4a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full"
-                  >
-                    記録する
-                  </button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+                </div>
+                <button
+                  type="submit"
+                  className="rounded-[10px] border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-[#F85F6A] hover:bg-[#f3a4a9] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm text-amber-50 sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full"
+                >
+                  記録する
+                </button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </main>
         <InputCompleteDialog
           isDialogOpen={isInputCompleteDialogOpen}
