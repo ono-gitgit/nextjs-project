@@ -3,77 +3,78 @@ import Form from "@/app/components/Form";
 import { BackgroundColor } from "@/app/components/BackgroundColor";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CreateAccountFormValue } from "@/app/types/types";
+import { CreateAccountFormValue, FormArray } from "@/app/types/types";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import { IconData } from "@/app/sampleData/iconData";
+
+export const defaultFormArray = [
+  {
+    label: "名前",
+    name: "name",
+    value: "",
+    validationRule: {
+      required: "名前は必須です",
+      maxLength: {
+        value: 10,
+        message: "名前は１０文字以内で入力して下さい",
+      },
+      pattern: {
+        value: /^\S(.*\S)?$/,
+        message: "先頭と末尾に空白文字を入れないください",
+      },
+    },
+    type: "text",
+  },
+  {
+    label: "メールアドレス",
+    name: "email_address",
+    value: "",
+    validationRule: {
+      required: "メールアドレスは必須です",
+      pattern: {
+        value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        message: "メールアドレスを正しく入力してください",
+      },
+    },
+    type: "email",
+  },
+  {
+    label: "パスワード",
+    name: "password",
+    value: "",
+    validationRule: {
+      required: "パスワードは必須です",
+      maxLength: {
+        value: 20,
+        message: "パスワードは２０文字以内で入力してください",
+      },
+      pattern: {
+        value: /^(?=.*[A-Z])(?=.*[a-z0-9])[A-Za-z0-9]+$/,
+        message: "半角英数字と大文字のアルファベットを使用してください",
+      },
+    },
+    type: "password",
+  },
+  {
+    label: "プロフィール画像",
+    name: "icon_id",
+    value: "",
+    validationRule: {
+      required: "プロフィール画像を選択してください",
+    },
+    type: "radio",
+    radioOptions: IconData,
+  },
+];
 
 export default function CreateAccount() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
-
-  const formArray = [
-    {
-      label: "名前",
-      name: "name",
-      value: "",
-      validationRule: {
-        required: "名前は必須です",
-        maxLength: {
-          value: 10,
-          message: "名前は１０文字以内で入力して下さい",
-        },
-        pattern: {
-          value: /^\S(.*\S)?$/,
-          message: "先頭と末尾に空白文字を入れないください",
-        },
-      },
-      type: "text",
-    },
-    {
-      label: "メールアドレス",
-      name: "email_address",
-      value: "",
-      validationRule: {
-        required: "メールアドレスは必須です",
-        pattern: {
-          value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-          message: "メールアドレスを正しく入力してください",
-        },
-      },
-      type: "email",
-    },
-    {
-      label: "パスワード",
-      name: "password",
-      value: "",
-      validationRule: {
-        required: "パスワードは必須です",
-        maxLength: {
-          value: 20,
-          message: "パスワードは２０文字以内で入力してください",
-        },
-        pattern: {
-          value: /^(?=.*[A-Z])(?=.*[a-z0-9])[A-Za-z0-9]+$/,
-          message: "半角英数字と大文字のアルファベットを使用してください",
-        },
-      },
-      type: "password",
-    },
-    {
-      label: "プロフィール画像",
-      name: "icon_id",
-      value: "",
-      validationRule: {
-        required: "プロフィール画像を選択してください",
-      },
-      type: "radio",
-      radioOptions: IconData,
-    },
-  ];
+  const [formArray, setFormArray] = useState<FormArray[]>(defaultFormArray);
 
   const onClick = async (user: CreateAccountFormValue) => {
     setIsLoading(true);
@@ -94,6 +95,14 @@ export default function CreateAccount() {
       sessionStorage.setItem("user_name", user.name);
       sessionStorage.setItem("icon_id", String(user.icon_id));
       sessionStorage.setItem("rank_id", "1");
+    } else {
+      const newDefaultFormArray = defaultFormArray.map((data) => {
+        return {
+          ...data,
+          value: user[data.name as keyof CreateAccountFormValue] ?? "",
+        };
+      });
+      setFormArray(newDefaultFormArray);
     }
     setIsDialogOpen(true);
     setDialogMessage(result.message);
@@ -113,14 +122,7 @@ export default function CreateAccount() {
           description="アプリを利用するにはサインインが必要です"
           formArray={formArray}
           onSubmit={(formValues) =>
-            onClick(
-              formValues as {
-                name: string;
-                email_address: string;
-                password: string;
-                icon_id: number;
-              }
-            )
+            onClick(formValues as CreateAccountFormValue)
           }
           bottonName="アカウント作成"
         >
