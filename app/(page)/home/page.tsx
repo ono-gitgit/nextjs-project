@@ -385,7 +385,6 @@ export default function Home() {
                 )}
               </dd>
             </dl>
-
             {/* グラフ（ここから） */}
             <Tab
               heading="月ごとの支出合計"
@@ -446,9 +445,9 @@ export default function Home() {
                       return null;
                     }}
                   />
-                  <p className="text-left">
+                  {/* <p className="text-left">
                     今日の日付: {formatDateToString(new Date())}
-                  </p>
+                  </p> */}
                   <Dialog
                     open={isCategoryDialogOpen}
                     onClose={() => setIsCategoryDialogOpen(false)}
@@ -483,7 +482,7 @@ export default function Home() {
                 </>
               }
               seconsdTabsValues={"expendAverage"}
-              seconsdTabsTitle={"記録開始以降の支出の平均"}
+              seconsdTabsTitle={"記録開始以降の支出平均"}
               seconsdTabsContent={
                 <Table className="bg-gray-200">
                   <TableBody>

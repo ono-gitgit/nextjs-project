@@ -197,12 +197,17 @@ export default function InquiryEdit() {
               <p className="mt-3 text-center text-3xl font-serif">
                 送信が完了しました
               </p>
+              <p className="text-center">
+                お問い合わせいただきました件については、
+                <br />
+                後日お客様のメールアドレス宛にご返信いたします
+              </p>
               <button
                 onClick={() => {
                   sessionStorage.setItem("navigation", "home");
                   router.push("/home");
                 }}
-                className="underline decoration-1"
+                className="underline decoration-1 text-blue-600"
               >
                 ホーム画面に戻る
               </button>
